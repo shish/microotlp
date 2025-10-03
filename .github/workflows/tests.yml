@@ -1,0 +1,55 @@
+name: Automated Tests
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    tags:
+      - "v*"
+  pull_request:
+
+jobs:
+  tests:
+    name: Unit Tests (PHP ${{ matrix.php }})
+    strategy:
+      matrix:
+        php: ["8.2", "8.3", "8.4"]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: vendor
+          key: vendor-${{ hashFiles('composer.json') }}
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: pcov
+      - uses: php-actions/composer@v6
+      - name: Run test suite
+        run: composer test
+
+  static:
+    name: Static Analysis
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: vendor
+          key: vendor-${{ hashFiles('composer.json') }}
+      - uses: php-actions/composer@v6
+      - run: composer analyse-ci
+
+  format:
+    name: Formatting
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: vendor
+          key: vendor-${{ hashFiles('composer.json') }}
+      - uses: php-actions/composer@v6
+      - run: composer format && git diff --exit-code

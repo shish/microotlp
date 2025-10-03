@@ -1,0 +1,9 @@
+vendor/
+coverage/
+.idea/
+*.phar
+*.clover
+*.cache
+
+# only apps need a lock, not libraries
+composer.lock
