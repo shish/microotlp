@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace MicroOTEL\Transports;
 
+use Google\Protobuf\Internal\Message;
+
 class HTTPTransport extends Transport
 {
     public function __construct(
@@ -11,15 +13,9 @@ class HTTPTransport extends Transport
     ) {
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
-    public function sendData(string $api, array $data): void
+    protected function sendData(string $api, Message $data): void
     {
-        $json = json_encode($data);
-        if ($json === false) {
-            throw new \RuntimeException('Failed to encode data as JSON');
-        }
+        $json = $data->serializeToJsonString(\Google\Protobuf\PrintOptions::ALWAYS_PRINT_ENUMS_AS_INTS);
         $ch = curl_init($this->endpoint . "/v1/" . $api);
         if ($ch === false) {
             throw new \RuntimeException('Failed to initialize cURL');

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace MicroOTEL\Transports;
 
+use Google\Protobuf\Internal\Message;
+
 class FileTransport extends Transport
 {
     public function __construct(
@@ -13,16 +15,13 @@ class FileTransport extends Transport
             mkdir($dir);
         }
     }
-    /**
-     * @param array<string, mixed> $data
-     */
-    public function sendData(string $api, array $data): void
+
+    public function sendData(string $api, Message $data): void
     {
-        $json = json_encode($data, JSON_PRETTY_PRINT);
-        if ($json === false) {
-            throw new \RuntimeException('Failed to encode data as JSON');
-        }
         $filename = $this->dir . '/' . $api . '.json';
-        file_put_contents($filename, $json);
+        $data = $data->serializeToJsonString(\Google\Protobuf\PrintOptions::ALWAYS_PRINT_ENUMS_AS_INTS);
+        $json = json_decode($data, true);
+        $data = json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        file_put_contents($filename, $data);
     }
 }

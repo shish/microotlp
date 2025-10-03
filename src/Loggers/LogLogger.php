@@ -4,32 +4,44 @@ declare(strict_types=1);
 
 namespace MicroOTEL\Loggers;
 
-use MicroOTEL\Encoders;
-use MicroOTEL\Entries\LogEntry;
+use Google\Protobuf\Internal\Message;
+use Opentelemetry\Proto\Logs\V1\LogsData;
+use Opentelemetry\Proto\Logs\V1\ResourceLogs;
+use Opentelemetry\Proto\Logs\V1\ScopeLogs;
+use Opentelemetry\Proto\Logs\V1\LogRecord;
+use Opentelemetry\Proto\Common\V1\AnyValue;
 
+/**
+ * @extends BaseLogger<LogRecord>
+ */
 class LogLogger extends BaseLogger
 {
-    public function getPacket(): array
+    public function getMessage(): Message
     {
-        return [
-            "resourceLogs" => [
-                [
-                    "resource" => [
-                        "attributes" => Encoders::dict2otel($this->client->getResourceAttributes()),
-                    ],
-                    "scopeLogs" => [
-                        [
+        return new LogsData([
+            "resource_logs" => [
+                new ResourceLogs([
+                    "resource" => $this->client->getResource(),
+                    "scope_logs" => [
+                        new ScopeLogs([
                             "scope" => $this->client->getScope(),
-                            "logRecords" => array_map(fn ($x) => $x->getPacket(), $this->data),
-                        ],
+                            "log_records" => $this->data,
+                        ]),
                     ],
-                ],
-            ],
-        ];
+                ])
+            ]
+        ]);
     }
 
-    public function log(LogEntry $entry): void
+    public function log(string $message, array $attributes): void
     {
-        $this->data[] = $entry;
+        $this->data[] = new LogRecord([
+            "time_unix_nano" => (string)(microtime(true) * 1e9),
+            "severity_text" => "INFO",
+            "body" => new AnyValue(["string_value" => $message]),
+            "attributes" => \MicroOTEL\Encoders::dict2otel($attributes),
+            "trace_id" => hex2bin($this->client->traceId),
+            "span_id" => hex2bin(end($this->client->spanIds) ?: "0000000000000000"),
+        ]);
     }
 }

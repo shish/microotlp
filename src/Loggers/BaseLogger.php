@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace MicroOTEL\Loggers;
 
-use MicroOTEL\Entries\BaseEntry;
+use Google\Protobuf\Internal\Message;
 
+/**
+ * @template T
+ */
 abstract class BaseLogger
 {
-    /** @var array<BaseEntry> */
+    /** @var array<T> */
     protected array $data = [];
 
     public function __construct(
@@ -16,10 +19,7 @@ abstract class BaseLogger
     ) {
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    abstract public function getPacket(): array;
+    abstract public function getMessage(): Message;
 
     public function hasData(): bool
     {

@@ -4,34 +4,24 @@ declare(strict_types=1);
 
 namespace MicroOTEL\Transports;
 
+use Google\Protobuf\Internal\Message;
+
 abstract class Transport
 {
-    /**
-     * @param array<string, mixed> $data
-     */
-    public function sendLogs(array $data): void
+    public function sendLogs(Message $data): void
     {
         $this->sendData('logs', $data);
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
-    public function sendMetrics(array $data): void
+    public function sendMetrics(Message $data): void
     {
-        $this->sendData('logs', $data);
+        $this->sendData('metrics', $data);
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
-    public function sendTraces(array $data): void
+    public function sendTraces(Message $data): void
     {
-        $this->sendData('logs', $data);
+        $this->sendData('traces', $data);
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
-    abstract public function sendData(string $api, array $data): void;
+    abstract protected function sendData(string $api, Message $data): void;
 }

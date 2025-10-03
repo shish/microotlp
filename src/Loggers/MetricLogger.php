@@ -4,31 +4,35 @@ declare(strict_types=1);
 
 namespace MicroOTEL\Loggers;
 
-use MicroOTEL\Encoders;
-use MicroOTEL\Entries\MetricEntry;
+use Google\Protobuf\Internal\Message;
+use Opentelemetry\Proto\Metrics\V1\Metric;
+use Opentelemetry\Proto\Metrics\V1\MetricsData;
+use Opentelemetry\Proto\Metrics\V1\ResourceMetrics;
+use Opentelemetry\Proto\Metrics\V1\ScopeMetrics;
 
+/**
+ * @extends BaseLogger<Metric>
+ */
 class MetricLogger extends BaseLogger
 {
-    public function getPacket(): array
+    public function getMessage(): Message
     {
-        return [
-            "resourceMetrics" => [
-                [
-                    "resource" => [
-                        "attributes" => Encoders::dict2otel($this->client->getResourceAttributes()),
-                    ],
-                    "scopeMetrics" => [
-                        [
+        return new MetricsData([
+            "resource_metrics" => [
+                new ResourceMetrics([
+                    "resource" => $this->client->getResource(),
+                    "scope_metrics" => [
+                        new ScopeMetrics([
                             "scope" => $this->client->getScope(),
-                            "metrics" => array_map(fn ($x) => $x->getPacket(), $this->data),
-                        ],
+                            "metrics" => $this->data,
+                        ]),
                     ],
-                ],
-            ],
-        ];
+                ])
+            ]
+        ]);
     }
 
-    public function log(MetricEntry $entry): void
+    public function log(Metric $entry): void
     {
         $this->data[] = $entry;
     }

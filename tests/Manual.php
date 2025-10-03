@@ -17,14 +17,13 @@ $tl = $c->getTraceLogger();
 $ml = $c->getMetricLogger();
 $ll = $c->getLogLogger();
 
-$span = $tl->startSpan("I'm a server span");
+$span = $tl->startSpan("I'm a server span", ["my.span.attr" => "some value"]);
 usleep(100);
 //$span->addEvent("test-event", ["key" => "value"]);
 usleep(100);
 //$ml->log(new \MicroOTEL\Entries\MetricEntry("test.metric", 123, ["unit" => "ms"]));
 usleep(100);
-$ll->log(new \MicroOTEL\Entries\LogEntry(
-    $c,
+$ll->log(
     "Example log record",
     [
         "string.attribute" => "some string",
@@ -34,7 +33,7 @@ $ll->log(new \MicroOTEL\Entries\LogEntry(
         "array.attribute" => ["many", "values"],
         "map.attribute" => ["some.map.key" => "some value"],
     ]
-));
+);
 usleep(100);
 $span->end();
 

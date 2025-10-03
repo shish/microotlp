@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace MicroOTEL\Transports;
 
+use Google\Protobuf\Internal\Message;
+
 class TestTransport extends Transport
 {
-    /** @var array<int, array{url: string, data: array<string, mixed>}> */
+    /** @var array<int, array{url: string, data: Message}> */
     public array $sent_data = [];
 
-    /**
-     * @param array<string, mixed> $data
-     */
-    public function sendData(string $api, array $data): void
+    protected function sendData(string $api, Message $data): void
     {
         $this->sent_data[] = ['url' => $api, 'data' => $data];
     }

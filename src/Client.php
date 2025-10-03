@@ -8,6 +8,10 @@ use MicroOTEL\Transports\Transport;
 use MicroOTEL\Loggers\LogLogger;
 use MicroOTEL\Loggers\MetricLogger;
 use MicroOTEL\Loggers\TraceLogger;
+use Opentelemetry\Proto\Common\V1\InstrumentationScope;
+use Opentelemetry\Proto\Common\V1\AnyValue;
+use Opentelemetry\Proto\Common\V1\KeyValue;
+use Opentelemetry\Proto\Resource\V1\Resource;
 
 class Client
 {
@@ -55,26 +59,27 @@ class Client
         return $this->logLogger;
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function getResourceAttributes(): array
+    public function getResource(): Resource
     {
-        return $this->resourceAttributes;
+        return new Resource([
+            "attributes" => Encoders::dict2otel($this->resourceAttributes),
+        ]);
     }
 
-    /**
-     * @return array{name: string, version: string}
-     */
-    public function getScope(): array
+    public function getScope(): InstrumentationScope
     {
-        return [
+        return new InstrumentationScope([
             "name" => "my.library",
             "version" => "1.0.0",
-            "attributes" => Encoders::dict2otel([
-                "my.scope.attribute" => "some scope attribute",
-            ]),
-        ];
+            "attributes" => [
+                new KeyValue([
+                    "key" => "my.scope.attribute",
+                    "value" => new AnyValue([
+                        "string_value" => "some scope attribute",
+                    ]),
+                ]),
+            ]
+        ]);
     }
 
     public function hasData(): bool
@@ -85,24 +90,15 @@ class Client
     public function flush(): void
     {
         if ($this->traceLogger->hasData()) {
-            $this->transport->sendData(
-                api: 'traces',
-                data: $this->traceLogger->getPacket(),
-            );
+            $this->transport->sendTraces($this->traceLogger->getMessage());
             $this->traceLogger->clear();
         }
         if ($this->metricLogger->hasData()) {
-            $this->transport->sendData(
-                api: 'metrics',
-                data: $this->metricLogger->getPacket(),
-            );
+            $this->transport->sendMetrics($this->metricLogger->getMessage());
             $this->metricLogger->clear();
         }
         if ($this->logLogger->hasData()) {
-            $this->transport->sendData(
-                api: 'logs',
-                data: $this->logLogger->getPacket(),
-            );
+            $this->transport->sendLogs($this->logLogger->getMessage());
             $this->logLogger->clear();
         }
     }
