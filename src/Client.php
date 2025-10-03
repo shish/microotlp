@@ -15,9 +15,10 @@ use Opentelemetry\Proto\Resource\V1\Resource;
 
 class Client
 {
-    private TraceLogger $traceLogger;
-    private MetricLogger $metricLogger;
-    private LogLogger $logLogger;
+    private readonly Transport $transport;
+    private readonly TraceLogger $traceLogger;
+    private readonly MetricLogger $metricLogger;
+    private readonly LogLogger $logLogger;
     /** @var array<string, mixed> */
     private array $resourceAttributes = [];
     public string $traceId;
@@ -28,11 +29,22 @@ class Client
      * @param array<string, mixed>|null $resourceAttributes
      */
     public function __construct(
-        private readonly Transport $transport,
+        string $url,
         string $traceId = '',
         string $spanId = '',
         ?array $resourceAttributes = null,
     ) {
+        $parsed = parse_url($url);
+        if ($parsed === false || !isset($parsed['scheme']) || !isset($parsed['path'])) {
+            throw new \InvalidArgumentException("Invalid URL: $url");
+        }
+        $this->transport = match($parsed["scheme"]) {
+            'http', 'https' => new Transports\HTTPTransport($url),
+            'file' => new Transports\FileTransport($parsed["path"]),
+            'test' => new Transports\TestTransport(),
+            default => throw new \InvalidArgumentException("Unsupported URL scheme: {$parsed['scheme']}"),
+        };
+
         $this->traceLogger = new TraceLogger($this);
         $this->metricLogger = new MetricLogger($this);
         $this->logLogger = new LogLogger($this);

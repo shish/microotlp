@@ -3,9 +3,9 @@
 require __DIR__ . '/../vendor/autoload.php';
 
 //$tt = new \MicroOTEL\Transports\HTTPTransport("https://otelcol.shish.io/");
-$tt = new \MicroOTEL\Transports\FileTransport("./refs-dir");
+$cwd = getcwd();
 $c = new \MicroOTEL\Client(
-    transport: $tt,
+    url: "file://$cwd/refs-dir",
     traceId: "5B8EFFF798038103D269B633813FC60C",
     spanId: "EEE19B7EC3C1B173",
     resourceAttributes: [
@@ -17,12 +17,6 @@ $tl = $c->getTraceLogger();
 $ml = $c->getMetricLogger();
 $ll = $c->getLogLogger();
 
-$span = $tl->startSpan("I'm a server span", ["my.span.attr" => "some value"]);
-usleep(100);
-//$span->addEvent("test-event", ["key" => "value"]);
-usleep(100);
-//$ml->log(new \MicroOTEL\Entries\MetricEntry("test.metric", 123, ["unit" => "ms"]));
-usleep(100);
 $ll->log(
     "Example log record",
     [
@@ -34,6 +28,13 @@ $ll->log(
         "map.attribute" => ["some.map.key" => "some value"],
     ]
 );
+usleep(100);
+
+$span = $tl->startSpan("I'm a server span", ["my.span.attr" => "some value"]);
+//$span->addEvent("test-event", ["key" => "value"]);
+usleep(100);
+//$ml->log(new \MicroOTEL\Entries\MetricEntry("test.metric", 123, ["unit" => "ms"]));
+usleep(100);
 usleep(100);
 $span->end();
 

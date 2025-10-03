@@ -20,20 +20,23 @@ class SpanBuilder
         string $name,
         array $attributes = [],
     ) {
+        $my_id = strtoupper(bin2hex(random_bytes(8)));
         $this->span = new Span([
-            "trace_id" => $this->logger->client->traceId,
-            "span_id" => bin2hex(random_bytes(8)),
-            "parent_span_id" => end($this->logger->client->spanIds) ?: '',
+            "trace_id" => base64_decode($this->logger->client->traceId),
+            "span_id" => base64_decode($my_id),
+            "parent_span_id" => base64_decode(end($this->logger->client->spanIds) ?: ''),
             "name" => $name,
             "start_time_unix_nano" => (string)(int)(microtime(true) * 1e9),
             //"end_time_unix_nano" => "0",
             "kind" => Span\SpanKind::SPAN_KIND_SERVER,
             "attributes" => \MicroOTEL\Encoders::dict2otel($attributes),
         ]);
+        $this->logger->client->spanIds[] = $my_id;
     }
 
     public function end(?bool $success = null): void
     {
+        array_pop($this->logger->client->spanIds);
         if ($success !== null) {
             $this->span->setStatus(new Status([
                 "code" => $success ? StatusCode::STATUS_CODE_OK : StatusCode::STATUS_CODE_ERROR,
