@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MicroOTEL\Transports;
+namespace MicroOTLP\Transports;
 
 use Google\Protobuf\Internal\Message;
 

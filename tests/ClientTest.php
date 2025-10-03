@@ -6,15 +6,15 @@ class ClientTest extends \PHPUnit\Framework\TestCase
 {
     public function testBasic(): void
     {
-        $c = new \MicroOTEL\Client("test://");
+        $c = new \MicroOTLP\Client("test://");
         self::assertFalse($c->hasData());
     }
 
     public function testLogging(): void
     {
-        $c = new \MicroOTEL\Client("test://");
+        $c = new \MicroOTLP\Client("test://");
         $logger = $c->getLogLogger();
-        $logger->log(new \MicroOTEL\Entries\LogEntry("Hello logger!"));
+        $logger->log("Hello logger!");
         self::assertTrue($c->hasData());
         $c->flush();
         self::assertFalse($c->hasData());
@@ -22,9 +22,9 @@ class ClientTest extends \PHPUnit\Framework\TestCase
 
     public function testMetrics(): void
     {
-        $c = new \MicroOTEL\Client("test://");
+        $c = new \MicroOTLP\Client("test://");
         $logger = $c->getMetricLogger();
-        $logger->log(new \MicroOTEL\Entries\MetricEntry("test.metric", 42));
+        $logger->log(new \MicroOTLP\Entries\MetricEntry("test.metric", 42));
         self::assertTrue($c->hasData());
         $c->flush();
         self::assertFalse($c->hasData());
@@ -32,14 +32,14 @@ class ClientTest extends \PHPUnit\Framework\TestCase
 
     public function testTracing(): void
     {
-        $c = new \MicroOTEL\Client("test://");
+        $c = new \MicroOTLP\Client("test://");
         $tracer = $c->getTraceLogger();
         $span1 = $tracer->startSpan("test-outer-span");
-        usleep(10);
-        $span2 = $tracer->startSpan("test-innser-span");
-        usleep(10);
+        usleep(100);
+        $span2 = $tracer->startSpan("test-inner-span");
+        usleep(100);
         $span2->end();
-        usleep(10);
+        usleep(100);
         $span1->end();
         self::assertTrue($c->hasData());
         $c->flush();

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MicroOTEL\Loggers;
+namespace MicroOTLP\Loggers;
 
 use Google\Protobuf\Internal\Message;
 use Opentelemetry\Proto\Trace\V1\ResourceSpans;
@@ -35,7 +35,7 @@ class TraceLogger extends BaseLogger
     /**
      * @param array<string, mixed> $attributes
      */
-    public function startSpan(string $name, array $attributes): SpanBuilder
+    public function startSpan(string $name, array $attributes = []): SpanBuilder
     {
         return new SpanBuilder($this, $name, $attributes);
     }

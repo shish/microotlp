@@ -1,5 +1,6 @@
 vendor/
 coverage/
+output-gen
 .idea/
 *.phar
 *.clover

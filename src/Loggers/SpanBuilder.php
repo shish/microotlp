@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MicroOTEL\Loggers;
+namespace MicroOTLP\Loggers;
 
 use Opentelemetry\Proto\Trace\V1\Span;
 use Opentelemetry\Proto\Trace\V1\Status;
@@ -29,7 +29,7 @@ class SpanBuilder
             "start_time_unix_nano" => (string)(int)(microtime(true) * 1e9),
             //"end_time_unix_nano" => "0",
             "kind" => Span\SpanKind::SPAN_KIND_SERVER,
-            "attributes" => \MicroOTEL\Encoders::dict2otel($attributes),
+            "attributes" => \MicroOTLP\Encoders::dict2otel($attributes),
         ]);
         $this->logger->client->spanIds[] = $my_id;
     }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MicroOTEL\Loggers;
+namespace MicroOTLP\Loggers;
 
 use Google\Protobuf\Internal\Message;
 
@@ -15,7 +15,7 @@ abstract class BaseLogger
     protected array $data = [];
 
     public function __construct(
-        public \MicroOTEL\Client $client
+        public \MicroOTLP\Client $client
     ) {
     }
 

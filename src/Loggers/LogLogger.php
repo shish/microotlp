@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MicroOTEL\Loggers;
+namespace MicroOTLP\Loggers;
 
 use Google\Protobuf\Internal\Message;
 use Opentelemetry\Proto\Logs\V1\LogsData;
@@ -36,14 +36,14 @@ class LogLogger extends BaseLogger
     /**
      * @param array<string, mixed> $attributes
      */
-    public function log(string $message, array $attributes): void
+    public function log(string $message, array $attributes = []): void
     {
         $this->data[] = new LogRecord([
             "time_unix_nano" => (string)(microtime(true) * 1e9),
             "severity_number" => 10, // INFO
             "severity_text" => "Information",
             "body" => new AnyValue(["string_value" => $message]),
-            "attributes" => \MicroOTEL\Encoders::dict2otel($attributes),
+            "attributes" => \MicroOTLP\Encoders::dict2otel($attributes),
             "trace_id" => base64_decode($this->client->traceId),
             "span_id" => base64_decode(end($this->client->spanIds) ?: "0000000000000000"),
         ]);

@@ -1,13 +1,13 @@
 {
-    "name": "shish/microotel",
+    "name": "shish/microotlp",
     "type": "library",
     "description": "A minimal OpenTelemetry logging library",
     "keywords": [
         "generator",
-        "otel",
+        "otlp",
 		"opentelemetry"
     ],
-    "homepage": "https://github.com/shish/microotel",
+    "homepage": "https://github.com/shish/microotlp",
     "license": "MIT",
     "authors": [
         {
@@ -28,7 +28,7 @@
     },
     "autoload": {
         "psr-4": {
-            "MicroOTEL\\": "src"
+            "MicroOTLP\\": "src"
         }
     },
     "scripts": {

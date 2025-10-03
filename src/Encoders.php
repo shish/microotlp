@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MicroOTEL;
+namespace MicroOTLP;
 
 use Opentelemetry\Proto\Common\V1\AnyValue;
 use Opentelemetry\Proto\Common\V1\ArrayValue;

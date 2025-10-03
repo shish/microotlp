@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MicroOTEL\Loggers;
+namespace MicroOTLP\Loggers;
 
 use Google\Protobuf\Internal\Message;
 use Opentelemetry\Proto\Metrics\V1\Metric;

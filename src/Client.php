@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace MicroOTEL;
+namespace MicroOTLP;
 
-use MicroOTEL\Transports\Transport;
-use MicroOTEL\Loggers\LogLogger;
-use MicroOTEL\Loggers\MetricLogger;
-use MicroOTEL\Loggers\TraceLogger;
+use MicroOTLP\Transports\Transport;
+use MicroOTLP\Loggers\LogLogger;
+use MicroOTLP\Loggers\MetricLogger;
+use MicroOTLP\Loggers\TraceLogger;
 use Opentelemetry\Proto\Common\V1\InstrumentationScope;
 use Opentelemetry\Proto\Common\V1\AnyValue;
 use Opentelemetry\Proto\Common\V1\KeyValue;
@@ -34,15 +34,12 @@ class Client
         string $spanId = '',
         ?array $resourceAttributes = null,
     ) {
-        $parsed = parse_url($url);
-        if ($parsed === false || !isset($parsed['scheme']) || !isset($parsed['path'])) {
-            throw new \InvalidArgumentException("Invalid URL: $url");
-        }
-        $this->transport = match($parsed["scheme"]) {
+        [$scheme, $path] = explode("://", $url, 2) + [1 => ''];
+        $this->transport = match($scheme) {
             'http', 'https' => new Transports\HTTPTransport($url),
-            'file' => new Transports\FileTransport($parsed["path"]),
+            'file' => new Transports\FileTransport($path),
             'test' => new Transports\TestTransport(),
-            default => throw new \InvalidArgumentException("Unsupported URL scheme: {$parsed['scheme']}"),
+            default => throw new \InvalidArgumentException("Unsupported URL scheme: {$scheme}"),
         };
 
         $this->traceLogger = new TraceLogger($this);
