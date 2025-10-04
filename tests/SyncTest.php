@@ -13,9 +13,10 @@ class SyncTest extends \PHPUnit\Framework\TestCase
     {
         // get temp dir
         $this->dir = sys_get_temp_dir() . '/microotlp_test_' . bin2hex(random_bytes(5));
+        mkdir($this->dir);
 
         $c = new \MicroOTLP\Client(
-            targetUrl: "file://{$this->dir}",
+            targetUrl: "dir://{$this->dir}",
             traceId: "5B8EFFF798038103D269B633813FC60C",
             spanId: "EEE19B7EC3C1B173",
             resourceAttributes: [
@@ -76,7 +77,7 @@ class SyncTest extends \PHPUnit\Framework\TestCase
     public function tearDown(): void
     {
         if (is_dir($this->dir)) {
-            $files = glob($this->dir . '/*.json');
+            $files = glob($this->dir . '/*.jsonl');
             assert($files !== false);
             foreach ($files as $file) {
                 unlink($file);
@@ -88,7 +89,7 @@ class SyncTest extends \PHPUnit\Framework\TestCase
     public function testLogs(): void
     {
         $ref = json_decode(file_get_contents(__DIR__ . '/../output-ref/logs.json'), true);
-        $gen = json_decode(file_get_contents($this->dir . '/logs.json'), true);
+        $gen = json_decode(file_get_contents($this->dir . '/logs.jsonl'), true);
 
         // MicroOTLP name/version number are going to be different from reference data
         $ref["resourceLogs"][0]["scopeLogs"][0]["scope"]["name"] = '';
@@ -112,7 +113,7 @@ class SyncTest extends \PHPUnit\Framework\TestCase
     public function testTraces(): void
     {
         $ref = json_decode(file_get_contents(__DIR__ . '/../output-ref/traces.json'), true);
-        $gen = json_decode(file_get_contents($this->dir . '/traces.json'), true);
+        $gen = json_decode(file_get_contents($this->dir . '/traces.jsonl'), true);
 
         // MicroOTLP name/version number are going to be different from reference data
         $ref["resourceSpans"][0]["scopeSpans"][0]["scope"]["name"] = '';
@@ -136,7 +137,7 @@ class SyncTest extends \PHPUnit\Framework\TestCase
     public function testMetrics(): void
     {
         $ref = json_decode(file_get_contents(__DIR__ . '/../output-ref/metrics.json'), true);
-        $gen = json_decode(file_get_contents($this->dir . '/metrics.json'), true);
+        $gen = json_decode(file_get_contents($this->dir . '/metrics.jsonl'), true);
 
         // MicroOTLP name/version number are going to be different from reference data
         $ref["resourceMetrics"][0]["scopeMetrics"][0]["scope"]["name"] = '';

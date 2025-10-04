@@ -222,17 +222,14 @@ class Client
         [$scheme, $path] = explode("://", $this->transportUrl, 2) + [1 => ''];
         match($scheme) {
             'http', 'https' => $this->sendDataToHTTP($this->transportUrl, $api, $data),
-            'file' => $this->sendDataToFile($path, $api, $data),
+            'dir' => $this->sendDataToFile("$path/$api.jsonl", $data),
+            'file' => $this->sendDataToFile($path, $data),
             default => throw new \InvalidArgumentException("Unsupported URL scheme: {$scheme}"),
         };
     }
 
-    private function sendDataToFile(string $dir, string $api, Message $data): void
+    private function sendDataToFile(string $filename, Message $data): void
     {
-        if (!is_dir($dir)) {
-            mkdir($dir);
-        }
-        $filename = $dir . '/' . $api . '.jsonl';
         $data = $data->serializeToJsonString(\Google\Protobuf\PrintOptions::ALWAYS_PRINT_ENUMS_AS_INTS);
         file_put_contents($filename, "$data\n", FILE_APPEND | LOCK_EX);
     }
