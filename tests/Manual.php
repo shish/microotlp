@@ -4,7 +4,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $cwd = getcwd();
 $c = new \MicroOTLP\Client(
-    targetUrl: "file://$cwd/output-gen",
+    targetUrl: "file://$cwd/output-gen/out.jsonl",
     traceId: "5B8EFFF798038103D269B633813FC60C",
     spanId: "EEE19B7EC3C1B173",
     resourceAttributes: [
@@ -43,6 +43,8 @@ $c->logCounter("my.counter", 63);
 usleep(100_000);
 
 $s2->end();
+
+usleep(20_000);
 
 $s3 = $c->startSpan("Second Subspan", ["my.span.attr" => "some value"]);
 usleep(100_000);

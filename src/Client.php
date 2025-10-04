@@ -152,10 +152,18 @@ class Client
     // Transport and Flush
     ///////////////////////////////////////////////////////////////////
 
-    public function flush(): void
+    public function flush(?string $url = null): void
     {
+        if ($url === null) {
+            $url = $this->transportUrl;
+        }
+        if ($url === null) {
+            throw new \RuntimeException("Transport is not set");
+        }
+
         if ($this->logData) {
             $this->sendData(
+                $url,
                 "logs",
                 new LogsData([
                     "resource_logs" => [
@@ -175,6 +183,7 @@ class Client
         }
         if ($this->metricData) {
             $this->sendData(
+                $url,
                 "metrics",
                 new MetricsData([
                     "resource_metrics" => [
@@ -194,6 +203,7 @@ class Client
         }
         if ($this->traceData) {
             $this->sendData(
+                $url,
                 "traces",
                 new TracesData([
                     "resource_spans" => [
@@ -213,15 +223,22 @@ class Client
         }
     }
 
-    private function sendData(string $api, Message $data): void
+    private function sendData(string $url, string $api, Message $data): void
     {
-        if (!$this->transportUrl) {
-            throw new \RuntimeException("Transport is not set");
+        if (!str_contains($url, "://")) {
+            if (
+                str_ends_with($url, ".json")
+                || str_ends_with($url, ".jsonl")
+            ) {
+                $url = "file://$url";
+            } else {
+                $url = "dir://$url";
+            }
         }
 
-        [$scheme, $path] = explode("://", $this->transportUrl, 2) + [1 => ''];
+        [$scheme, $path] = explode("://", $url, 2) + [1 => ''];
         match($scheme) {
-            'http', 'https' => $this->sendDataToHTTP($this->transportUrl, $api, $data),
+            'http', 'https' => $this->sendDataToHTTP($url, $api, $data),
             'dir' => $this->sendDataToFile("$path/$api.jsonl", $data),
             'file' => $this->sendDataToFile($path, $data),
             default => throw new \InvalidArgumentException("Unsupported URL scheme: {$scheme}"),
@@ -237,7 +254,7 @@ class Client
     private function sendDataToHTTP(string $base, string $api, Message $data): void
     {
         $json = $data->serializeToJsonString(\Google\Protobuf\PrintOptions::ALWAYS_PRINT_ENUMS_AS_INTS);
-        $ch = curl_init($base . "/v1/" . $api);
+        $ch = curl_init("$base/v1/$api");
         if ($ch === false) {
             throw new \RuntimeException('Failed to initialize cURL');
         }
