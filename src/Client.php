@@ -229,7 +229,7 @@ class Client
         if (!is_dir($dir)) {
             mkdir($dir);
         }
-        $filename = $dir . '/' . $api . '.json';
+        $filename = $dir . '/' . $api . '.jsonl';
         $data = $data->serializeToJsonString(\Google\Protobuf\PrintOptions::ALWAYS_PRINT_ENUMS_AS_INTS);
         file_put_contents($filename, "$data\n", FILE_APPEND | LOCK_EX);
     }
