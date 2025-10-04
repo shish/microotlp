@@ -108,6 +108,9 @@ class Client
     {
         $out = [];
         foreach ($in as $k => $v) {
+            if ($v === null) {
+                continue;
+            }
             $out[] = new KeyValue([
                 "key" => (string)$k,
                 "value" => self::value2otel($v)
