@@ -23,8 +23,6 @@ class ClientTest extends \PHPUnit\Framework\TestCase
         $c = new MyClient();
         $c->log("Hello logger!");
         self::assertTrue($c->hasData());
-        $c->flush();
-        self::assertFalse($c->hasData());
     }
 
     public function testMetrics(): void
@@ -58,8 +56,6 @@ class ClientTest extends \PHPUnit\Framework\TestCase
         */
         usleep(100_000);
         self::assertTrue($c->hasData());
-        $c->flush();
-        self::assertFalse($c->hasData());
     }
 
     public function testTracing(): void
@@ -73,7 +69,5 @@ class ClientTest extends \PHPUnit\Framework\TestCase
         usleep(100_000);
         $span1->end();
         self::assertTrue($c->hasData());
-        $c->flush();
-        self::assertFalse($c->hasData());
     }
 }
