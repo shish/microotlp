@@ -10,7 +10,7 @@ use Opentelemetry\Proto\Trace\V1\Status\StatusCode;
 
 class SpanBuilder
 {
-    protected readonly Span $span;
+    public readonly Span $span;
     public readonly string $id;
 
     /**
@@ -25,6 +25,7 @@ class SpanBuilder
         protected Client $client,
         string $name,
         array $attributes = [],
+        ?int $startTime = null,
     ) {
         $this->id = strtoupper(bin2hex(random_bytes(8)));
         $this->attributes = $attributes;
@@ -38,7 +39,7 @@ class SpanBuilder
                     : $this->client->spanId
             ),
             "name" => $name,
-            "start_time_unix_nano" => (string)(int)(microtime(true) * 1e9),
+            "start_time_unix_nano" => (string)($startTime ?? (int)(microtime(true) * 1e9)),
             "kind" => Span\SpanKind::SPAN_KIND_SERVER,
         ]);
         $this->client->spanStack[] = $this;
@@ -47,8 +48,12 @@ class SpanBuilder
     /**
      * @param array<string, mixed> $attributes
      */
-    public function end(?bool $success = null, ?string $message = null, ?array $attributes = null): void
-    {
+    public function end(
+        ?bool $success = null,
+        ?string $message = null,
+        ?array $attributes = null,
+        ?int $endTime = null,
+    ): void {
         // remove my spanId from the list, even if it's in the middle
         $this->client->spanStack = array_values(array_filter(
             $this->client->spanStack,
@@ -74,7 +79,7 @@ class SpanBuilder
             ]));
         }
 
-        $this->span->setEndTimeUnixNano((string)(int)(microtime(true) * 1e9));
+        $this->span->setEndTimeUnixNano((string)($endTime ?? (int)(microtime(true) * 1e9)));
         $this->client->logSpan($this->span);
     }
 }

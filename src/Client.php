@@ -434,21 +434,40 @@ class Client
     /**
      * @param array<string, mixed> $attributes
      */
-    public function startSpan(string $name, array $attributes = []): SpanBuilder
+    public function startSpan(string $name, array $attributes = [], ?int $startTime = null): SpanBuilder
     {
-        return new SpanBuilder($this, $name, $attributes);
+        return new SpanBuilder($this, $name, $attributes, startTime: $startTime);
     }
 
     /**
      * @param array<string, mixed> $attributes
      */
-    public function endSpan(?bool $success = null, ?string $message = null, ?array $attributes = null): void
-    {
+    public function endSpan(
+        ?bool $success = null,
+        ?string $message = null,
+        ?array $attributes = null,
+        ?int $endTime = null,
+    ): void {
         if (empty($this->spanStack)) {
             throw new \RuntimeException("No active span to end");
         }
         $sb = end($this->spanStack);
-        $sb->end($success, $message, $attributes);
+        $sb->end($success, $message, $attributes, endTime: $endTime);
+    }
+
+    /**
+     * @param array<string, mixed> $attributes
+     */
+    public function completeSpan(
+        int $startTime,
+        int $endTime,
+        string $name,
+        ?bool $success = null,
+        ?string $message = null,
+        ?array $attributes = null
+    ): void {
+        $sb = $this->startSpan($name, startTime: $startTime);
+        $sb->end($success, $message, $attributes, endTime: $endTime);
     }
 
     public function endAllSpans(): void
