@@ -264,10 +264,11 @@ class Client
     /**
      * @param array<string, mixed> $attributes
      */
-    public function log(string $message, array $attributes = []): void
+    public function logMessage(string $message, array $attributes = []): void
     {
         $this->logData[] = new LogRecord([
             "time_unix_nano" => (string)(microtime(true) * 1e9),
+            "observed_time_unix_nano" => (string)(microtime(true) * 1e9),
             "severity_number" => 10, // INFO
             "severity_text" => "Information",
             "body" => new AnyValue(["string_value" => $message]),
@@ -296,7 +297,7 @@ class Client
             $unit,
             $description,
             $metadata,
-            sum: new Sum([
+            ["sum" => new Sum([
                 "data_points" => [
                     new NumberDataPoint([
                         "as_double" => $value,
@@ -306,7 +307,7 @@ class Client
                 ],
                 "aggregation_temporality" => AggregationTemporality::AGGREGATION_TEMPORALITY_DELTA,
                 "is_monotonic" => true,
-            ]),
+            ])],
         );
     }
 
@@ -325,14 +326,14 @@ class Client
             $unit,
             $description,
             $metadata,
-            gauge: new Gauge([
+            ["gauge" => new Gauge([
                 "data_points" => [
                     new NumberDataPoint([
                         "as_double" => $value,
                         "time_unix_nano" => (int) (microtime(true) * 1_000_000_000),
                     ]),
                 ],
-            ]),
+            ])],
         );
     }
 
@@ -388,27 +389,21 @@ class Client
 
     /**
      * @param array<string, mixed> $metadata
+     * @param array<string, Gauge|Sum|Histogram|ExponentialHistogram> $metric
      */
-    public function logMetric(
+    private function logMetric(
         string $name,
         ?string $unit = null,
         ?string $description = null,
         array $metadata = [],
-        ?Gauge $gauge = null,
-        ?Sum $sum = null,
-        ?Histogram $histogram = null,
-        ?ExponentialHistogram $exponential_histogram = null,
+        array $metric = [],
     ): void {
-        $this->metricData[] = new Metric([
+        $this->metricData[] = new Metric(array_merge([
             "name" => $name,
             "description" => $description,
             "unit" => $unit,
             "metadata" => $metadata,
-            "gauge" => $gauge,
-            "sum" => $sum,
-            "histogram" => $histogram,
-            "exponential_histogram" => $exponential_histogram,
-        ]);
+        ], $metric));
     }
 
     ///////////////////////////////////////////////////////////////////

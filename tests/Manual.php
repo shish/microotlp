@@ -15,7 +15,7 @@ $c = new \MicroOTLP\Client(
     ],
 );
 
-$c->log(
+$c->logMessage(
     "Example log record",
     [
         "string.attribute" => "some string",
@@ -31,7 +31,7 @@ usleep(100);
 $span = $c->startSpan("I'm a server span", ["my.span.attr" => "some value"]);
 //$span->addEvent("test-event", ["key" => "value"]);
 usleep(100);
-//$ml->log(new \MicroOTLP\Entries\MetricEntry("test.metric", 123, ["unit" => "ms"]));
+$c->logCounter("my.counter", 42);
 usleep(100);
 usleep(100);
 $span->end();

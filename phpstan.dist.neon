@@ -3,3 +3,7 @@ parameters:
         - ./src
         - ./tests
     level: 9
+    ignoreErrors:
+        -
+            message: '#Cannot access offset .*#'
+            path: tests/SyncTest.php

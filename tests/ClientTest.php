@@ -21,7 +21,7 @@ class ClientTest extends \PHPUnit\Framework\TestCase
     public function testLogging(): void
     {
         $c = new MyClient();
-        $c->log("Hello logger!");
+        $c->logMessage("Hello logger!");
         self::assertTrue($c->hasData());
     }
 
