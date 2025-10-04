@@ -231,9 +231,7 @@ class Client
         }
         $filename = $dir . '/' . $api . '.json';
         $data = $data->serializeToJsonString(\Google\Protobuf\PrintOptions::ALWAYS_PRINT_ENUMS_AS_INTS);
-        $json = json_decode($data, true);
-        $data = json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-        file_put_contents($filename, $data);
+        file_put_contents($filename, "$data\n", FILE_APPEND | LOCK_EX);
     }
 
     private function sendDataToHTTP(string $base, string $api, Message $data): void

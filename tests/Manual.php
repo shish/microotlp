@@ -15,6 +15,18 @@ $c = new \MicroOTLP\Client(
     ],
 );
 
+usleep(100_000);
+
+$s1 = $c->startSpan("Topspan", ["my.span.attr" => "some value"]);
+//$span->addEvent("test-event", ["key" => "value"]);
+
+usleep(100_000);
+
+$c->logCounter("my.counter", 42);
+$s2 = $c->startSpan("First subspan", ["my.span.attr" => "some value"]);
+
+usleep(100_000);
+
 $c->logMessage(
     "Example log record",
     [
@@ -26,14 +38,20 @@ $c->logMessage(
         "map.attribute" => ["some.map.key" => "some value"],
     ]
 );
-usleep(100);
+$c->logCounter("my.counter", 63);
 
-$span = $c->startSpan("I'm a server span", ["my.span.attr" => "some value"]);
-//$span->addEvent("test-event", ["key" => "value"]);
-usleep(100);
-$c->logCounter("my.counter", 42);
-usleep(100);
-usleep(100);
-$span->end();
+usleep(100_000);
 
+$s2->end();
+
+$s3 = $c->startSpan("Second Subspan", ["my.span.attr" => "some value"]);
+usleep(100_000);
+$c->logMessage("Another log record");
+$c->logCounter("my.counter", 74);
+usleep(100_000);
+$s3->end();
+
+usleep(100_000);
+
+$s1->end();
 $c->flush();
