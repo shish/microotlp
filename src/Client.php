@@ -21,18 +21,22 @@ class Client
     private readonly LogLogger $logLogger;
     /** @var array<string, mixed> */
     private array $resourceAttributes = [];
+    /** @var array<string, mixed> */
+    private array $scopeAttributes = [];
     public string $traceId;
     /** @var array<string> */
     public array $spanIds = [];
 
     /**
      * @param array<string, mixed>|null $resourceAttributes
+     * @param array<string, mixed>|null $scopeAttributes
      */
     public function __construct(
         string $url,
-        string $traceId = '',
-        string $spanId = '',
+        ?string $traceId = null,
+        ?string $spanId = null,
         ?array $resourceAttributes = null,
+        ?array $scopeAttributes = null,
     ) {
         [$scheme, $path] = explode("://", $url, 2) + [1 => ''];
         $this->transport = match($scheme) {
@@ -49,6 +53,15 @@ class Client
             "service.name" => "microotel-service",
             "service.instance.id" => gethostname() ?: "unknown",
         ];
+        $this->scopeAttributes = $scopeAttributes ?: [];
+
+        $traceparent = $_SERVER['HTTP_TRACEPARENT'] ?? "";
+        assert(is_string($traceparent));
+        $parts = explode("-", $traceparent);
+        if (count($parts) === 4) {
+            $traceId = $traceId ?: $parts[1];
+            $spanId = $spanId ?: $parts[2];
+        }
         $this->traceId = $traceId ?: bin2hex(random_bytes(16));
         $this->spanIds[] = $spanId ?: bin2hex(random_bytes(8));
     }
@@ -78,16 +91,9 @@ class Client
     public function getScope(): InstrumentationScope
     {
         return new InstrumentationScope([
-            "name" => "my.library",
-            "version" => "1.0.0",
-            "attributes" => [
-                new KeyValue([
-                    "key" => "my.scope.attribute",
-                    "value" => new AnyValue([
-                        "string_value" => "some scope attribute",
-                    ]),
-                ]),
-            ]
+            "name" => "microotlp",
+            "version" => "0.0.0",
+            "attributes" => Encoders::dict2otel($this->scopeAttributes)
         ]);
     }
 

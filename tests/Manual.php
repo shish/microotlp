@@ -9,7 +9,11 @@ $c = new \MicroOTLP\Client(
     spanId: "EEE19B7EC3C1B173",
     resourceAttributes: [
         "service.name" => "my.service",
-    ]
+    ],
+    scopeAttributes: [
+        "library.name" => "my.library",
+        "library.version" => "1.0.0",
+    ],
 );
 
 $tl = $c->getTraceLogger();
