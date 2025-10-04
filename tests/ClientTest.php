@@ -2,19 +2,26 @@
 
 declare(strict_types=1);
 
+class MyClient extends \MicroOTLP\Client
+{
+    public function hasData(): bool
+    {
+        return $this->logData || $this->metricData || $this->traceData;
+    }
+}
+
 class ClientTest extends \PHPUnit\Framework\TestCase
 {
     public function testBasic(): void
     {
-        $c = new \MicroOTLP\Client("test://");
+        $c = new MyClient();
         self::assertFalse($c->hasData());
     }
 
     public function testLogging(): void
     {
-        $c = new \MicroOTLP\Client("test://");
-        $logger = $c->getLogLogger();
-        $logger->log("Hello logger!");
+        $c = new MyClient();
+        $c->log("Hello logger!");
         self::assertTrue($c->hasData());
         $c->flush();
         self::assertFalse($c->hasData());
@@ -22,12 +29,11 @@ class ClientTest extends \PHPUnit\Framework\TestCase
 
     public function testMetrics(): void
     {
-        $c = new \MicroOTLP\Client("test://");
-        $logger = $c->getMetricLogger();
-        $logger->logCounter("my.counter", 5);
-        $logger->logGauge("my.gauge", 10);
+        $c = new MyClient();
+        $c->logCounter("my.counter", 5);
+        $c->logGauge("my.gauge", 10);
         /*
-        $logger->logHistogram(
+        $c->logHistogram(
             "my.histogram",
             count: 2,
             sum: 2,
@@ -36,7 +42,7 @@ class ClientTest extends \PHPUnit\Framework\TestCase
             min: 0,
             max: 2,
         );
-        $logger->logExponentialHistogram(
+        $c->logExponentialHistogram(
             "my.exponential_histogram",
             count: 3,
             sum: 10,
@@ -58,11 +64,10 @@ class ClientTest extends \PHPUnit\Framework\TestCase
 
     public function testTracing(): void
     {
-        $c = new \MicroOTLP\Client("test://");
-        $tracer = $c->getTraceLogger();
-        $span1 = $tracer->startSpan("test-outer-span");
+        $c = new MyClient();
+        $span1 = $c->startSpan("test-outer-span");
         usleep(100_000);
-        $span2 = $tracer->startSpan("test-inner-span");
+        $span2 = $c->startSpan("test-inner-span");
         usleep(100_000);
         $span2->end();
         usleep(100_000);
