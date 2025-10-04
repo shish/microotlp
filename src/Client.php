@@ -39,8 +39,9 @@ class Client
     /** @var array<string, mixed> */
     private array $scopeAttributes = [];
     public string $traceId;
-    /** @var array<string> */
-    public array $spanIds = [];
+    public string $spanId;
+    /** @var SpanBuilder[] */
+    public array $spanStack = [];
 
     /** @var array<LogRecord> */
     protected array $logData = [];
@@ -77,7 +78,8 @@ class Client
             $spanId = $spanId ?: $parts[2];
         }
         $this->traceId = $traceId ?: bin2hex(random_bytes(16));
-        $this->spanIds[] = $spanId ?: bin2hex(random_bytes(8));
+        $this->spanId = $spanId ?: '0000000000000000';
+        $this->spanStack = [];
     }
 
     public function getResource(): Resource
@@ -289,7 +291,11 @@ class Client
             "body" => new AnyValue(["string_value" => $message]),
             "attributes" => self::dict2otel($attributes),
             "trace_id" => base64_decode($this->traceId),
-            "span_id" => base64_decode(end($this->spanIds) ?: "0000000000000000"),
+            "span_id" => base64_decode(
+                $this->spanStack
+                    ? end($this->spanStack)->id
+                    : $this->spanId
+            ),
         ]);
     }
 
@@ -431,6 +437,25 @@ class Client
     public function startSpan(string $name, array $attributes = []): SpanBuilder
     {
         return new SpanBuilder($this, $name, $attributes);
+    }
+
+    /**
+     * @param array<string, mixed> $attributes
+     */
+    public function endSpan(?bool $success = null, ?string $message = null, ?array $attributes = null): void
+    {
+        if (empty($this->spanStack)) {
+            throw new \RuntimeException("No active span to end");
+        }
+        $sb = end($this->spanStack);
+        $sb->end($success, $message, $attributes);
+    }
+
+    public function endAllSpans(): void
+    {
+        while (!empty($this->spanStack)) {
+            $this->endSpan(success: false, message: "Span orphaned and auto-closed");
+        }
     }
 
     public function logSpan(Span $entry): void

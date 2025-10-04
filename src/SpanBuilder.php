@@ -10,8 +10,8 @@ use Opentelemetry\Proto\Trace\V1\Status\StatusCode;
 
 class SpanBuilder
 {
-    protected Span $span;
-    protected string $id;
+    protected readonly Span $span;
+    public readonly string $id;
 
     /**
      * @var array<string, mixed> $attributes
@@ -32,13 +32,16 @@ class SpanBuilder
         $this->span = new Span([
             "trace_id" => base64_decode($this->client->traceId),
             "span_id" => base64_decode($this->id),
-            "parent_span_id" => base64_decode(end($this->client->spanIds) ?: ''),
+            "parent_span_id" => base64_decode(
+                $this->client->spanStack
+                    ? end($this->client->spanStack)->id
+                    : $this->client->spanId
+            ),
             "name" => $name,
             "start_time_unix_nano" => (string)(int)(microtime(true) * 1e9),
-            //"end_time_unix_nano" => "0",
             "kind" => Span\SpanKind::SPAN_KIND_SERVER,
         ]);
-        $this->client->spanIds[] = $this->id;
+        $this->client->spanStack[] = $this;
     }
 
     /**
@@ -47,9 +50,9 @@ class SpanBuilder
     public function end(?bool $success = null, ?string $message = null, ?array $attributes = null): void
     {
         // remove my spanId from the list, even if it's in the middle
-        $this->client->spanIds = array_values(array_filter(
-            $this->client->spanIds,
-            fn ($id) => $id !== $this->id
+        $this->client->spanStack = array_values(array_filter(
+            $this->client->spanStack,
+            fn ($sb) => $sb !== $this
         ));
 
         $attrsToSet = $this->attributes;
