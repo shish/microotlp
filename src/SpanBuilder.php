@@ -4,10 +4,17 @@ declare(strict_types=1);
 
 namespace MicroOTLP;
 
+/*
 use Opentelemetry\Proto\Trace\V1\Span;
 use Opentelemetry\Proto\Trace\V1\Span\SpanKind;
 use Opentelemetry\Proto\Trace\V1\Status;
 use Opentelemetry\Proto\Trace\V1\Status\StatusCode;
+*/
+
+use MicroOTLP\MockTypes\Span;
+use MicroOTLP\MockTypes\SpanKind;
+use MicroOTLP\MockTypes\Status;
+use MicroOTLP\MockTypes\StatusCode;
 
 class SpanBuilder
 {
@@ -32,15 +39,15 @@ class SpanBuilder
         $this->attributes = $attributes;
 
         $this->span = new Span([
-            "trace_id" => Client::encodeId($this->client->traceId),
-            "span_id" => Client::encodeId($this->id),
-            "parent_span_id" => Client::encodeId(
+            "traceId" => Client::encodeId($this->client->traceId),
+            "spanId" => Client::encodeId($this->id),
+            "parentSpanId" => Client::encodeId(
                 $this->client->spanStack
                     ? end($this->client->spanStack)->id
                     : $this->client->spanId
             ),
             "name" => $name,
-            "start_time_unix_nano" => (string)($startTime ?? (int)(microtime(true) * 1e9)),
+            "startTimeUnixNano" => (string)($startTime ?? (int)(microtime(true) * 1e9)),
             "kind" => SpanKind::SPAN_KIND_SERVER,
         ]);
         $this->client->spanStack[] = $this;

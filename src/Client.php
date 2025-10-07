@@ -4,31 +4,59 @@ declare(strict_types=1);
 
 namespace MicroOTLP;
 
+/*
 use Google\Protobuf\Internal\Message;
+use Opentelemetry\Proto\Common\V1\AnyValue;
+use Opentelemetry\Proto\Common\V1\ArrayValue;
 use Opentelemetry\Proto\Common\V1\InstrumentationScope;
-use Opentelemetry\Proto\Resource\V1\Resource;
+use Opentelemetry\Proto\Common\V1\KeyValue;
+use Opentelemetry\Proto\Common\V1\KeyValueList;
+use Opentelemetry\Proto\Logs\V1\LogRecord;
 use Opentelemetry\Proto\Logs\V1\LogsData;
 use Opentelemetry\Proto\Logs\V1\ResourceLogs;
 use Opentelemetry\Proto\Logs\V1\ScopeLogs;
-use Opentelemetry\Proto\Logs\V1\LogRecord;
-use Opentelemetry\Proto\Common\V1\AnyValue;
-use Opentelemetry\Proto\Metrics\V1\Gauge;
-use Opentelemetry\Proto\Metrics\V1\Sum;
-use Opentelemetry\Proto\Metrics\V1\Histogram;
+use Opentelemetry\Proto\Metrics\V1\AggregationTemporality;
 use Opentelemetry\Proto\Metrics\V1\ExponentialHistogram;
-use Opentelemetry\Proto\Metrics\V1\NumberDataPoint;
+use Opentelemetry\Proto\Metrics\V1\Gauge;
+use Opentelemetry\Proto\Metrics\V1\Histogram;
 use Opentelemetry\Proto\Metrics\V1\Metric;
 use Opentelemetry\Proto\Metrics\V1\MetricsData;
+use Opentelemetry\Proto\Metrics\V1\NumberDataPoint;
 use Opentelemetry\Proto\Metrics\V1\ResourceMetrics;
 use Opentelemetry\Proto\Metrics\V1\ScopeMetrics;
-use Opentelemetry\Proto\Metrics\V1\AggregationTemporality;
+use Opentelemetry\Proto\Metrics\V1\Sum;
+use Opentelemetry\Proto\Resource\V1\Resource;
 use Opentelemetry\Proto\Trace\V1\ResourceSpans;
 use Opentelemetry\Proto\Trace\V1\ScopeSpans;
 use Opentelemetry\Proto\Trace\V1\Span;
 use Opentelemetry\Proto\Trace\V1\TracesData;
-use Opentelemetry\Proto\Common\V1\ArrayValue;
-use Opentelemetry\Proto\Common\V1\KeyValue;
-use Opentelemetry\Proto\Common\V1\KeyValueList;
+*/
+
+use MicroOTLP\MockTypes\AggregationTemporality;
+use MicroOTLP\MockTypes\AnyValue;
+use MicroOTLP\MockTypes\ArrayValue;
+use MicroOTLP\MockTypes\ExponentialHistogram;
+use MicroOTLP\MockTypes\Gauge;
+use MicroOTLP\MockTypes\Histogram;
+use MicroOTLP\MockTypes\InstrumentationScope;
+use MicroOTLP\MockTypes\KeyValue;
+use MicroOTLP\MockTypes\KeyValueList;
+use MicroOTLP\MockTypes\LogRecord;
+use MicroOTLP\MockTypes\LogsData;
+use MicroOTLP\MockTypes\Message;
+use MicroOTLP\MockTypes\Metric;
+use MicroOTLP\MockTypes\MetricsData;
+use MicroOTLP\MockTypes\NumberDataPoint;
+use MicroOTLP\MockTypes\Resource;
+use MicroOTLP\MockTypes\ResourceLogs;
+use MicroOTLP\MockTypes\ResourceMetrics;
+use MicroOTLP\MockTypes\ResourceSpans;
+use MicroOTLP\MockTypes\ScopeLogs;
+use MicroOTLP\MockTypes\ScopeMetrics;
+use MicroOTLP\MockTypes\ScopeSpans;
+use MicroOTLP\MockTypes\Span;
+use MicroOTLP\MockTypes\Sum;
+use MicroOTLP\MockTypes\TracesData;
 
 class Client
 {
@@ -124,23 +152,23 @@ class Client
     public static function value2otel(mixed $v): AnyValue
     {
         if (is_bool($v)) {
-            return new AnyValue(['bool_value' => $v]);
+            return new AnyValue(['boolValue' => $v]);
         } elseif (is_int($v)) {
-            return new AnyValue(['int_value' => $v]);
+            return new AnyValue(['intValue' => $v]);
         } elseif (is_float($v)) {
-            return new AnyValue(['double_value' => $v]);
+            return new AnyValue(['doubleValue' => $v]);
         } elseif (is_string($v)) {
-            return new AnyValue(['string_value' => $v]);
+            return new AnyValue(['stringValue' => $v]);
         } elseif (is_array($v)) {
             if (array_is_list($v)) {
                 return new AnyValue([
-                    'array_value' => new ArrayValue([
+                    'arrayValue' => new ArrayValue([
                         'values' => array_map(fn ($x) => self::value2otel($x), $v)
                     ]),
                 ]);
             } else {
                 return new AnyValue([
-                    'kvlist_value' => new KeyValueList([
+                    'kvlistValue' => new KeyValueList([
                         'values' => self::dict2otel($v)
                     ])
                 ]);
@@ -155,9 +183,9 @@ class Client
         // OTLP expects hex strings, but Protobuf encodes bytes as base64 --
         // if we preemptively _decode_ the hex string as if it were base64,
         // then base64'ing it will return the original hex string.
-        return base64_decode($id);
+        //return base64_decode($id);
 
-        //return $id;
+        return $id;
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -178,13 +206,13 @@ class Client
                 $url,
                 "logs",
                 new LogsData([
-                    "resource_logs" => [
+                    "resourceLogs" => [
                         new ResourceLogs([
                             "resource" => $this->getResource(),
-                            "scope_logs" => [
+                            "scopeLogs" => [
                                 new ScopeLogs([
                                     "scope" => $this->getScope(),
-                                    "log_records" => $this->logData,
+                                    "logRecords" => $this->logData,
                                 ]),
                             ],
                         ])
@@ -198,10 +226,10 @@ class Client
                 $url,
                 "metrics",
                 new MetricsData([
-                    "resource_metrics" => [
+                    "resourceMetrics" => [
                         new ResourceMetrics([
                             "resource" => $this->getResource(),
-                            "scope_metrics" => [
+                            "scopeMetrics" => [
                                 new ScopeMetrics([
                                     "scope" => $this->getScope(),
                                     "metrics" => $this->metricData,
@@ -218,10 +246,10 @@ class Client
                 $url,
                 "traces",
                 new TracesData([
-                    "resource_spans" => [
+                    "resourceSpans" => [
                         new ResourceSpans([
                             "resource" => $this->getResource(),
-                            "scope_spans" => [
+                            "scopeSpans" => [
                                 new ScopeSpans([
                                     "scope" => $this->getScope(),
                                     "spans" => $this->traceData,
@@ -259,13 +287,21 @@ class Client
 
     private function sendDataToFile(string $filename, Message $data): void
     {
-        $data = $data->serializeToJsonString(\Google\Protobuf\PrintOptions::ALWAYS_PRINT_ENUMS_AS_INTS);
-        file_put_contents($filename, "$data\n", FILE_APPEND | LOCK_EX);
+        // $json = $data->serializeToJsonString(\Google\Protobuf\PrintOptions::ALWAYS_PRINT_ENUMS_AS_INTS);
+        $json = json_encode($data, JSON_UNESCAPED_SLASHES);
+        if ($json === false) {
+            throw new \RuntimeException("Failed to serialize to JSON: " . json_last_error_msg());
+        }
+        file_put_contents($filename, "$json\n", FILE_APPEND | LOCK_EX);
     }
 
     private function sendDataToHTTP(string $base, string $api, Message $data): void
     {
-        $json = $data->serializeToJsonString(\Google\Protobuf\PrintOptions::ALWAYS_PRINT_ENUMS_AS_INTS);
+        // $json = $data->serializeToJsonString(\Google\Protobuf\PrintOptions::ALWAYS_PRINT_ENUMS_AS_INTS);
+        $json = json_encode($data, JSON_UNESCAPED_SLASHES);
+        if ($json === false) {
+            throw new \RuntimeException("Failed to serialize to JSON: " . json_last_error_msg());
+        }
         $ch = curl_init("$base/v1/$api");
         if ($ch === false) {
             throw new \RuntimeException('Failed to initialize cURL');
@@ -294,14 +330,14 @@ class Client
     public function logMessage(string $message, array $attributes = []): void
     {
         $this->logData[] = new LogRecord([
-            "time_unix_nano" => (string)(microtime(true) * 1e9),
-            "observed_time_unix_nano" => (string)(microtime(true) * 1e9),
-            "severity_number" => 10, // INFO
-            "severity_text" => "Information",
-            "body" => new AnyValue(["string_value" => $message]),
+            "timeUnixNano" => (string)(microtime(true) * 1e9),
+            "observedTimeUnixNano" => (string)(microtime(true) * 1e9),
+            "severityNumber" => 10, // INFO
+            "severityText" => "Information",
+            "body" => new AnyValue(["stringValue" => $message]),
             "attributes" => self::dict2otel($attributes),
-            "trace_id" => self::encodeId($this->traceId),
-            "span_id" => self::encodeId(
+            "traceId" => self::encodeId($this->traceId),
+            "spanId" => self::encodeId(
                 $this->spanStack
                     ? end($this->spanStack)->id
                     : $this->spanId
@@ -329,15 +365,15 @@ class Client
             $description,
             $metadata,
             ["sum" => new Sum([
-                "data_points" => [
+                "dataPoints" => [
                     new NumberDataPoint([
-                        "as_double" => $value,
-                        "time_unix_nano" => (int) (microtime(true) * 1e9),
+                        "asDouble" => $value,
+                        "timeUnixNano" => (int) (microtime(true) * 1e9),
                         //"attributes" => $this->formatAttributes($metadata),
                     ]),
                 ],
-                "aggregation_temporality" => AggregationTemporality::AGGREGATION_TEMPORALITY_DELTA,
-                "is_monotonic" => true,
+                "aggregationTemporality" => AggregationTemporality::AGGREGATION_TEMPORALITY_DELTA,
+                "isMonotonic" => true,
             ])],
         );
     }
@@ -358,10 +394,10 @@ class Client
             $description,
             $metadata,
             ["gauge" => new Gauge([
-                "data_points" => [
+                "dataPoints" => [
                     new NumberDataPoint([
-                        "as_double" => $value,
-                        "time_unix_nano" => (int) (microtime(true) * 1_000_000_000),
+                        "asDouble" => $value,
+                        "timeUnixNano" => (int) (microtime(true) * 1_000_000_000),
                     ]),
                 ],
             ])],
@@ -429,11 +465,13 @@ class Client
         array $metadata = [],
         array $metric = [],
     ): void {
+        if ($metadata) {
+            $metric["metadata"] = $metadata;
+        }
         $this->metricData[] = new Metric(array_merge([
             "name" => $name,
             "description" => $description,
             "unit" => $unit,
-            "metadata" => $metadata,
         ], $metric));
     }
 
