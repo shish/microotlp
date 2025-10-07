@@ -107,7 +107,7 @@ class Client
             $traceId = $traceId ?: $parts[1];
             $spanId = $spanId ?: $parts[2];
         }
-        $this->traceId = $traceId ?: bin2hex(random_bytes(16));
+        $this->traceId = $traceId ?: strtoupper(bin2hex(random_bytes(16)));
         $this->spanId = $spanId ?: '0000000000000000';
         $this->spanStack = [];
         $this->hrEpoch = hrtime(true) - (int)(microtime(true) * 1e9);
