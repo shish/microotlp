@@ -194,18 +194,22 @@ class Client
     // Transport and Flush
     ///////////////////////////////////////////////////////////////////
 
-    public function flush(?string $url = null): void
+    private function getTransportUrl(?string $url): string
     {
-        if ($url === null) {
-            $url = $this->transportUrl;
+        if ($url !== null) {
+            return $url;
         }
-        if ($url === null) {
-            throw new \RuntimeException("Transport is not set");
+        if ($this->transportUrl !== null) {
+            return $this->transportUrl;
         }
+        throw new \RuntimeException("Transport is not set");
+    }
 
+    public function flushLogs(?string $url = null): void
+    {
         if ($this->logData) {
             $this->sendData(
-                $url,
+                $this->getTransportUrl($url),
                 "logs",
                 new LogsData([
                     "resourceLogs" => [
@@ -223,9 +227,13 @@ class Client
             );
             $this->logData = [];
         }
+    }
+
+    public function flushMetrics(?string $url = null): void
+    {
         if ($this->metricData) {
             $this->sendData(
-                $url,
+                $this->getTransportUrl($url),
                 "metrics",
                 new MetricsData([
                     "resourceMetrics" => [
@@ -243,9 +251,13 @@ class Client
             );
             $this->metricData = [];
         }
+    }
+
+    public function flushTraces(?string $url = null): void
+    {
         if ($this->traceData) {
             $this->sendData(
-                $url,
+                $this->getTransportUrl($url),
                 "traces",
                 new TracesData([
                     "resourceSpans" => [
@@ -263,6 +275,14 @@ class Client
             );
             $this->traceData = [];
         }
+    }
+
+    public function flush(?string $url = null): void
+    {
+        $url = $this->getTransportUrl($url);
+        $this->flushLogs($url);
+        $this->flushMetrics($url);
+        $this->flushTraces($url);
     }
 
     private function sendData(string $url, string $api, Message $data): void
