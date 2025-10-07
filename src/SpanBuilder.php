@@ -47,7 +47,7 @@ class SpanBuilder
                     : $this->client->spanId
             ),
             "name" => $name,
-            "startTimeUnixNano" => (string)($startTime ?? (int)(microtime(true) * 1e9)),
+            "startTimeUnixNano" => $startTime ?? $this->client->time(),
             "kind" => SpanKind::SPAN_KIND_SERVER,
         ]);
         $this->client->spanStack[] = $this;
@@ -87,7 +87,7 @@ class SpanBuilder
             ]));
         }
 
-        $this->span->setEndTimeUnixNano((string)($endTime ?? (int)(microtime(true) * 1e9)));
+        $this->span->setEndTimeUnixNano($endTime ?? $this->client->time());
         $this->client->logSpan($this->span);
     }
 }

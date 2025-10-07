@@ -19,7 +19,7 @@ class Span extends Message
         $this->props["status"] = $status;
     }
 
-    public function setEndTimeUnixNano(string $endTimeUnixNano): void
+    public function setEndTimeUnixNano(int $endTimeUnixNano): void
     {
         $this->props["endTimeUnixNano"] = $endTimeUnixNano;
     }

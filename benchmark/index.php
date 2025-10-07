@@ -21,21 +21,20 @@ $monolog = new Logger('otel-php-monolog', [$handler]);
 $app = AppFactory::create();
 
 $app->get('/rolldice-bare', function (Request $request, Response $response) {
-    $startTime = (int)(microtime(true) * 1e9);
+    $startTime = hrtime(true);
     $total = 0;
     for ($i = 0; $i < 10_000; $i++) {
         $total += random_int(1, 6);
     }
 
-    $endTime = (int)(microtime(true) * 1e9);
-    $durationMs = sprintf("%7.2f", ($endTime - $startTime) / 1e6);
+    $durationMs = sprintf("%7.2f", (hrtime(true) - $startTime) / 1e6);
 
     $response->getBody()->write("No logs:        {$durationMs} ms (total $total)\n");
     return $response;
 });
 
 $app->get('/rolldice-otlp', function (Request $request, Response $response) use ($tracer, $monolog) {
-    $startTime = (int)(microtime(true) * 1e9);
+    $startTime = hrtime(true);
     $span = $tracer
         ->spanBuilder('manual-span')
         ->startSpan();
@@ -50,8 +49,7 @@ $app->get('/rolldice-otlp', function (Request $request, Response $response) use 
     }
     $span->end();
 
-    $endTime = (int)(microtime(true) * 1e9);
-    $durationMs = sprintf("%7.2f", ($endTime - $startTime) / 1e6);
+    $durationMs = sprintf("%7.2f", ($endTime = hrtime(true) - $startTime) / 1e6);
     $monolog->info("dice rolled, total: $total");
 
     $response->getBody()->write("OTLP SDK logs:  {$durationMs} ms (total $total)\n");
@@ -59,7 +57,7 @@ $app->get('/rolldice-otlp', function (Request $request, Response $response) use 
 });
 
 $app->get('/rolldice-micro', function (Request $request, Response $response) {
-    $startTime = (int)(microtime(true) * 1e9);
+    $startTime = hrtime(true);
     $c = new \MicroOTLP\Client("http://localhost:4318");
     //$c = new \MicroOTLP\Client("file://./otlp-data/file.json");
     $span = $c->startSpan("manual-span");
@@ -71,8 +69,7 @@ $app->get('/rolldice-micro', function (Request $request, Response $response) {
     }
     $span->end();
 
-    $endTime = (int)(microtime(true) * 1e9);
-    $durationMs = sprintf("%7.2f", ($endTime - $startTime) / 1e6);
+    $durationMs = sprintf("%7.2f", (hrtime(true) - $startTime) / 1e6);
     $c->logMessage("dice rolled, total $total");
 
     $response->getBody()->write("MicroOTLP logs: {$durationMs} ms (total $total)\n");

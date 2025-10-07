@@ -80,6 +80,8 @@ class Client
     /** @var array<Span> */
     protected array $traceData = [];
 
+    private readonly int $hrEpoch;
+
     /**
      * @param array<string, mixed>|null $resourceAttributes
      * @param array<string, mixed>|null $scopeAttributes
@@ -108,6 +110,7 @@ class Client
         $this->traceId = $traceId ?: bin2hex(random_bytes(16));
         $this->spanId = $spanId ?: '0000000000000000';
         $this->spanStack = [];
+        $this->hrEpoch = hrtime(true) - (int)(microtime(true) * 1e9);
     }
 
     public function getResource(): Resource
@@ -188,6 +191,11 @@ class Client
         //return base64_decode($id);
 
         return $id;
+    }
+
+    public function time(): int
+    {
+        return $this->hrEpoch + hrtime(true);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -352,8 +360,8 @@ class Client
     public function logMessage(string $message, array $attributes = []): void
     {
         $this->logData[] = new LogRecord([
-            "timeUnixNano" => (string)(microtime(true) * 1e9),
-            "observedTimeUnixNano" => (string)(microtime(true) * 1e9),
+            "timeUnixNano" => $this->time(),
+            "observedTimeUnixNano" => $this->time(),
             "severityNumber" => 10, // INFO
             "severityText" => "Information",
             "body" => new AnyValue(["stringValue" => $message]),
@@ -390,7 +398,7 @@ class Client
                 "dataPoints" => [
                     new NumberDataPoint([
                         "asDouble" => $value,
-                        "timeUnixNano" => (int) (microtime(true) * 1e9),
+                        "timeUnixNano" => $this->time(),
                         //"attributes" => $this->formatAttributes($metadata),
                     ]),
                 ],
@@ -419,7 +427,7 @@ class Client
                 "dataPoints" => [
                     new NumberDataPoint([
                         "asDouble" => $value,
-                        "timeUnixNano" => (int) (microtime(true) * 1_000_000_000),
+                        "timeUnixNano" => $this->time(),
                     ]),
                 ],
             ])],
@@ -444,7 +452,7 @@ class Client
                 "data_points" => [
                     new HistogramDataPoint([
                         "value" => $value,
-                        "time_unix_nano" => (int) (microtime(true) * 1_000_000_000),
+                        "time_unix_nano" => $this->time(),
                     ]),
                 ],
             ]),
@@ -468,7 +476,7 @@ class Client
                 "data_points" => [
                     new ExponentialHistogramDataPoint([
                         "value" => $value,
-                        "time_unix_nano" => (int) (microtime(true) * 1_000_000_000),
+                        "time_unix_nano" => $this->time(),
                     ]),
                 ],
             ]),
