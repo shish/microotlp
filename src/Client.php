@@ -150,6 +150,16 @@ class Client
         }
     }
 
+    public static function encodeId(string $id): string
+    {
+        // OTLP expects hex strings, but Protobuf encodes bytes as base64 --
+        // if we preemptively _decode_ the hex string as if it were base64,
+        // then base64'ing it will return the original hex string.
+        return base64_decode($id);
+
+        //return $id;
+    }
+
     ///////////////////////////////////////////////////////////////////
     // Transport and Flush
     ///////////////////////////////////////////////////////////////////
@@ -290,8 +300,8 @@ class Client
             "severity_text" => "Information",
             "body" => new AnyValue(["string_value" => $message]),
             "attributes" => self::dict2otel($attributes),
-            "trace_id" => base64_decode($this->traceId),
-            "span_id" => base64_decode(
+            "trace_id" => self::encodeId($this->traceId),
+            "span_id" => self::encodeId(
                 $this->spanStack
                     ? end($this->spanStack)->id
                     : $this->spanId

@@ -10,3 +10,13 @@ Limitations
 - Only supports HTTP transport for sending data
 - Assumes one Trace per request (though you can create multiple `Client`s if you want multiple traces)
 - Assumes metrics, logs, and traces are sent to the same Collector
+
+
+Performance
+-----------
+A loop of 10,000 x "create span, log message, end span":
+
+- No instrumentation: 5ms
+- With MicroOTLP (raw arrays): 20ms
+- With MicroOTLP (protobuf): 90ms
+- With OpenTelemetry SDK: 800ms
