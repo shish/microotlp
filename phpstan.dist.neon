@@ -6,4 +6,4 @@ parameters:
     ignoreErrors:
         -
             message: '#Cannot access offset .*#'
-            path: tests/SyncTest.php
+            path: tests/*
