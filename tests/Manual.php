@@ -4,7 +4,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $cwd = getcwd();
 $c = new \MicroOTLP\Client(
-    targetUrl: "file://$cwd/output-gen/out.jsonl",
+    targetUrl: @$argv[1] ?? "file://$cwd/output-gen/out.jsonl",
     traceId: "5B8EFFF798038103D269B633813FC60C",
     spanId: "EEE19B7EC3C1B173",
     resourceAttributes: [
