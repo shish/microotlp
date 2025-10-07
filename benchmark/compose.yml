@@ -1,0 +1,9 @@
+services:
+  jaeger:
+    image: cr.jaegertracing.io/jaegertracing/jaeger:2.10.0
+    ports:
+      - 4317:4317
+      - 4318:4318
+      - 16686:16686
+    command: --set=extensions.jaeger_storage.backends.some_storage.memory.max_traces=100000
+
