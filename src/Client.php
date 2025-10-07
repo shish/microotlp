@@ -38,8 +38,8 @@ class Client
     private array $resourceAttributes = [];
     /** @var array<string, mixed> */
     private array $scopeAttributes = [];
-    public string $traceId;
-    public string $spanId;
+    public readonly string $traceId;
+    public readonly string $spanId;
     /** @var SpanBuilder[] */
     public array $spanStack = [];
 
