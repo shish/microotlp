@@ -173,6 +173,8 @@ class Client
                     ])
                 ]);
             }
+        } elseif ($v instanceof \Stringable) {
+            return new AnyValue(['stringValue' => (string)$v]);
         } else {
             throw new \InvalidArgumentException('Unsupported attribute value type: ' . gettype($v));
         }
