@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace MicroOTLP\Tests;
 
-class TracingTest extends \PHPUnit\Framework\TestCase
+class TracesTest extends \PHPUnit\Framework\TestCase
 {
     public function testTracing(): void
     {
@@ -70,5 +70,38 @@ class TracingTest extends \PHPUnit\Framework\TestCase
         // outer should start first and end first too
         self::assertGreaterThan($outer->startTimeUnixNano, $inner->startTimeUnixNano);
         self::assertGreaterThan($outer->endTimeUnixNano, $inner->endTimeUnixNano);
+    }
+
+    public function testSync(): void
+    {
+        $c = new MyClient(
+            targetUrl: "test://",
+            traceId: "5B8EFFF798038103D269B633813FC60C",
+            spanId: "EEE19B7EC3C1B173",
+            resourceAttributes: [
+                "service.name" => "my.service",
+            ],
+            scopeAttributes: [
+                "my.scope.attribute" => "some scope attribute",
+            ],
+        );
+        $span = $c->startSpan("I'm a server span", ["my.span.attr" => "some value"]);
+        $span->end();
+        $c->flush();
+
+        $ref = $c->stripTimestamps($c->getRefData('traces'));
+        $gen = $c->stripTimestamps($c->getTestData());
+
+        // MicroOTLP name/version number are going to be different from reference data
+        $ref["resourceSpans"][0]["scopeSpans"][0]["scope"]["name"] = '';
+        $gen["resourceSpans"][0]["scopeSpans"][0]["scope"]["name"] = '';
+        $ref["resourceSpans"][0]["scopeSpans"][0]["scope"]["version"] = '';
+        $gen["resourceSpans"][0]["scopeSpans"][0]["scope"]["version"] = '';
+
+        // The example data assumes spanId = parentSpanId+1, but we use spanId = random()
+        $ref["resourceSpans"][0]["scopeSpans"][0]["spans"][0]["spanId"] = '';
+        $gen["resourceSpans"][0]["scopeSpans"][0]["spans"][0]["spanId"] = '';
+
+        self::assertEquals($ref, $gen);
     }
 }
