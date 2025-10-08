@@ -12,7 +12,6 @@ use Opentelemetry\Proto\Trace\V1\Status\StatusCode;
 */
 
 use MicroOTLP\MockTypes\Span;
-use MicroOTLP\MockTypes\SpanKind;
 use MicroOTLP\MockTypes\Status;
 use MicroOTLP\MockTypes\StatusCode;
 
@@ -35,6 +34,7 @@ class SpanBuilder
         string $name,
         array $attributes = [],
         ?int $startTime = null,
+        ?SpanKind $kind = null,
     ) {
         $this->id = strtoupper(bin2hex(random_bytes(8)));
         $this->attributes = $attributes;
@@ -49,9 +49,9 @@ class SpanBuilder
             ),
             "name" => $name,
             "startTimeUnixNano" => $startTime ?? $this->client->time(),
-            "kind" => $this->client->spanStack
-                ? SpanKind::SPAN_KIND_INTERNAL
-                : SpanKind::SPAN_KIND_SERVER,
+            "kind" => $kind ?? $this->client->spanStack
+                ? SpanKind::INTERNAL
+                : SpanKind::SERVER,
         ]);
         $this->client->spanStack[] = $this;
     }
