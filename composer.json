@@ -30,6 +30,11 @@
             "MicroOTLP\\": "src"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "MicroOTLP\\Tests\\": "tests"
+        }
+    },
     "scripts": {
         "check": [
             "@format",

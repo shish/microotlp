@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace MicroOTLP\Tests;
+
 use function Safe\file_get_contents;
 use function Safe\json_decode;
 
