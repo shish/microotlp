@@ -4,7 +4,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $cwd = getcwd();
 $c = new \MicroOTLP\Client(
-    targetUrl: @$argv[1] ?? "file://$cwd/output-gen/out.jsonl",
+    targetUrl: @$argv[1] ?: "file://$cwd/output-gen/out.jsonl",
     traceId: "5B8EFFF798038103D269B633813FC60C",
     spanId: "EEE19B7EC3C1B173",
     resourceAttributes: [
@@ -17,7 +17,7 @@ $c = new \MicroOTLP\Client(
 
 usleep(100_000);
 
-$s1 = $c->startSpan("Topspan", ["my.span.attr" => "some value"]);
+$s1 = $c->startSpan("MicroOTLP Manual Test", ["my.span.attr" => "some value"]);
 //$span->addEvent("test-event", ["key" => "value"]);
 
 usleep(100_000);
@@ -49,7 +49,7 @@ usleep(20_000);
 $s3 = $c->startSpan("Second Subspan", ["my.span.attr" => "some value"]);
 usleep(100_000);
 $c->logMessage("Another log record");
-$c->logCounter("my.counter", 74);
+$c->logCounter("my.counter", 74, metadata: ["extra" => "attribute"]);
 usleep(100_000);
 $s3->end();
 

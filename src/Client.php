@@ -347,6 +347,9 @@ class Client
             curl_close($ch);
             throw new \RuntimeException("cURL error: $err");
         }
+        # $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        # $dbg = "$json\n\n$code\n\n$ret";
+        # file_put_contents(tempnam(sys_get_temp_dir(), "microotlp-".time()."-$api-"), $dbg);
         curl_close($ch);
     }
 
@@ -496,7 +499,7 @@ class Client
         array $metric = [],
     ): void {
         if ($metadata) {
-            $metric["metadata"] = $metadata;
+            $metric["metadata"] = self::dict2otel($metadata);
         }
         $this->metricData[] = new Metric(array_merge([
             "name" => $name,
