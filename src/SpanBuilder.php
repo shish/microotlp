@@ -56,6 +56,11 @@ class SpanBuilder
         $this->client->spanStack[] = $this;
     }
 
+    public function setName(string $name): void
+    {
+        $this->span->setName($name);
+    }
+
     /**
      * @param array<string, mixed> $attributes
      */

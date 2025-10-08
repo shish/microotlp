@@ -6,6 +6,11 @@ namespace MicroOTLP\MockTypes;
 
 class Span extends Message
 {
+    public function setName(string $name): void
+    {
+        $this->props["name"] = $name;
+    }
+
     /**
      * @param array<string, mixed> $attributes
      */
