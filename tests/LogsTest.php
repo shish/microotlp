@@ -36,7 +36,7 @@ class LogsTest extends \PHPUnit\Framework\TestCase
         );
         $c->logMessage(
             "Example log record",
-            [
+            attributes: [
                 "string.attribute" => "some string",
                 "boolean.attribute" => true,
                 "int.attribute" => 10,

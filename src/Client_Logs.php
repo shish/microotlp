@@ -20,13 +20,16 @@ trait Client_Logs
     /**
      * @param array<string, mixed> $attributes
      */
-    public function logMessage(string $message, array $attributes = []): void
-    {
+    public function logMessage(
+        string $message,
+        LogSeverity $severity = LogSeverity::INFO,
+        array $attributes = [],
+    ): void {
         $this->logData[] = new LogRecord([
             "timeUnixNano" => $this->time(),
             "observedTimeUnixNano" => $this->time(),
-            "severityNumber" => 10, // INFO
-            "severityText" => "Information",
+            "severityNumber" => $severity->value,
+            "severityText" => $severity->name,
             "body" => new AnyValue(["stringValue" => $message]),
             "attributes" => self::dict2otel($attributes),
             "traceId" => self::encodeId($this->traceId),
