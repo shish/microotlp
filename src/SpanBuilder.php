@@ -63,12 +63,31 @@ class SpanBuilder
         ?string $message = null,
         ?array $attributes = null,
         ?int $endTime = null,
+        bool $withChildren = true,
     ): void {
-        // remove my spanId from the list, even if it's in the middle
-        $this->client->spanStack = array_values(array_filter(
-            $this->client->spanStack,
-            fn ($sb) => $sb !== $this
-        ));
+        // 99% of the time the span being ended is the last one in the stack,
+        // so we optimize for that case
+        if (end($this->client->spanStack) === $this) {
+            array_pop($this->client->spanStack);
+        }
+        // Else we are somewhere in the middle of the stack
+        else {
+            // Remove all children, then myself
+            if ($withChildren) {
+                while ($this->client->spanStack && end($this->client->spanStack) !== $this) {
+                    $childSpan = array_pop($this->client->spanStack);
+                    $childSpan->end(success: false, message: "Parent span ended", withChildren: true);
+                }
+                array_pop($this->client->spanStack);
+            }
+            // Remove only myself from the middle of the stack
+            else {
+                $this->client->spanStack = array_values(array_filter(
+                    $this->client->spanStack,
+                    fn ($sb) => $sb !== $this
+                ));
+            }
+        }
 
         $attrsToSet = $this->attributes;
         if ($attributes !== null) {
