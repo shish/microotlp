@@ -10,7 +10,7 @@ class MyClient extends \MicroOTLP\Client
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<int, mixed>
      */
     public function getLogData(): array
     {
@@ -18,7 +18,7 @@ class MyClient extends \MicroOTLP\Client
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<int, mixed>
      */
     public function getMetricData(): array
     {
@@ -26,7 +26,7 @@ class MyClient extends \MicroOTLP\Client
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<int, mixed>
      */
     public function getTraceData(): array
     {
@@ -54,12 +54,12 @@ class ClientTest extends \PHPUnit\Framework\TestCase
         $c->logMessage("Hello again!");
         self::assertTrue($c->hasData());
         $logs = $c->getLogData();
-        $basic = \Safe\json_decode(\Safe\json_encode($logs), associative: true);
+        $basic = \Safe\json_decode(\Safe\json_encode($logs));
         self::assertCount(2, $logs);
-        self::assertEquals("Hello logger!", $basic[0]["body"]["stringValue"]);
-        self::assertEquals("Hello again!", $basic[1]["body"]["stringValue"]);
-        $log1time = $basic[0]["timeUnixNano"];
-        $log2time = $basic[1]["timeUnixNano"];
+        self::assertEquals("Hello logger!", $basic[0]->body->stringValue);
+        self::assertEquals("Hello again!", $basic[1]->body->stringValue);
+        $log1time = $basic[0]->timeUnixNano;
+        $log2time = $basic[1]->timeUnixNano;
         self::assertGreaterThan($log1time, $log2time);
     }
 
@@ -109,15 +109,59 @@ class ClientTest extends \PHPUnit\Framework\TestCase
         self::assertTrue($c->hasData());
 
         $traces = $c->getTraceData();
-        $basic = \Safe\json_decode(\Safe\json_encode($traces), associative: true);
+        $basic = \Safe\json_decode(\Safe\json_encode($traces));
         self::assertCount(2, $traces);
         $inner = $basic[0];  // inner completes first, so it goes in the logs first
         $outer = $basic[1];
-        self::assertEquals("test-inner-span", $inner["name"]);
-        self::assertEquals("test-outer-span", $outer["name"]);
-        self::assertEquals($outer["spanId"], $inner["parentSpanId"]);
-        self::assertGreaterThan($outer["startTimeUnixNano"], $inner["startTimeUnixNano"]);
-        self::assertGreaterThan($inner["startTimeUnixNano"], $inner["endTimeUnixNano"]);
-        self::assertGreaterThan($inner["startTimeUnixNano"], $outer["endTimeUnixNano"]);
+        self::assertEquals("test-inner-span", $inner->name);
+        self::assertEquals("test-outer-span", $outer->name);
+        self::assertEquals($outer->spanId, $inner->parentSpanId);
+        self::assertGreaterThan($outer->startTimeUnixNano, $inner->startTimeUnixNano);
+        self::assertGreaterThan($inner->startTimeUnixNano, $inner->endTimeUnixNano);
+        self::assertGreaterThan($inner->startTimeUnixNano, $outer->endTimeUnixNano);
+    }
+
+    public function testNestedEndWithChildren(): void
+    {
+        $c = new MyClient();
+        $outer_s = $c->startSpan("test-outer-span");
+        $inner_s = $c->startSpan("test-inner-span");
+        $outer_s->end(withChildren: true);  // call end() on outer, it will call end() on inner too
+        $inner_s->end(); // should be a no-op
+
+        $traces = $c->getTraceData();
+        $basic = \Safe\json_decode(\Safe\json_encode($traces));
+        self::assertCount(2, $basic);
+        $inner = $basic[0];  // inner completes first, so it goes in the logs first
+        $outer = $basic[1];
+        // validate that our spans are correct
+        self::assertEquals("test-inner-span", $inner->name);
+        self::assertEquals("test-outer-span", $outer->name);
+        self::assertEquals($outer->spanId, $inner->parentSpanId);
+        // outer should start first and end last
+        self::assertGreaterThan($outer->startTimeUnixNano, $inner->startTimeUnixNano);
+        self::assertGreaterThan($inner->endTimeUnixNano, $outer->endTimeUnixNano);
+    }
+
+    public function testNestedEndWithoutChildren(): void
+    {
+        $c = new MyClient();
+        $outer_s = $c->startSpan("test-outer-span");
+        $inner_s = $c->startSpan("test-inner-span");
+        $outer_s->end(withChildren: false);  // end just the outer, leave children running
+        $inner_s->end();
+
+        $traces = $c->getTraceData();
+        $basic = \Safe\json_decode(\Safe\json_encode($traces));
+        self::assertCount(2, $basic);
+        $inner = $basic[1];  // outer completes first, so it goes in the logs first
+        $outer = $basic[0];
+        // validate that our spans are correct
+        self::assertEquals("test-inner-span", $inner->name);
+        self::assertEquals("test-outer-span", $outer->name);
+        self::assertEquals($outer->spanId, $inner->parentSpanId);
+        // outer should start first and end first too
+        self::assertGreaterThan($outer->startTimeUnixNano, $inner->startTimeUnixNano);
+        self::assertGreaterThan($outer->endTimeUnixNano, $inner->endTimeUnixNano);
     }
 }

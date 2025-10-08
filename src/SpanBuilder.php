@@ -20,6 +20,7 @@ class SpanBuilder
 {
     public readonly Span $span;
     public readonly string $id;
+    private bool $ended = false;
 
     /**
      * @var array<string, mixed> $attributes
@@ -65,6 +66,12 @@ class SpanBuilder
         ?int $endTime = null,
         bool $withChildren = true,
     ): void {
+        // Things get very weird if we try to end a span twice
+        if ($this->ended) {
+            return;
+        }
+        $this->ended = true;
+
         // 99% of the time the span being ended is the last one in the stack,
         // so we optimize for that case
         if (end($this->client->spanStack) === $this) {

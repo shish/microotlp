@@ -2,8 +2,4 @@ parameters:
     paths:
         - ./src
         - ./tests
-    level: 9
-    ignoreErrors:
-        -
-            message: '#Cannot access offset .*#'
-            path: tests/*
+    level: 8
