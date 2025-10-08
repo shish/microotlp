@@ -30,6 +30,85 @@ class TracesTest extends \PHPUnit\Framework\TestCase
         self::assertGreaterThan($inner->startTimeUnixNano, $outer->endTimeUnixNano);
     }
 
+    public function testSetName(): void
+    {
+        $c = new MyClient();
+        $span = $c->startSpan("initial-name");
+        $span->setName("new-name");
+        $span->end();
+
+        $traces = $c->getTraceData();
+        self::assertCount(1, $traces);
+        self::assertEquals("new-name", $traces[0]->name);
+    }
+
+    public function testEndSpan(): void
+    {
+        $c = new MyClient();
+        $span1 = $c->startSpan("test-outer-span");
+        usleep(1000);
+        $span2 = $c->startSpan("test-inner-span");
+        usleep(1000);
+        $c->endSpan(); // ends inner span
+        usleep(1000);
+        $c->endSpan(); // ends outer span
+        self::assertTrue($c->hasData());
+
+        $traces = $c->getTraceData();
+        self::assertCount(2, $traces);
+        $inner = $traces[0];  // inner completes first, so it goes in the logs first
+        $outer = $traces[1];
+        self::assertEquals("test-inner-span", $inner->name);
+        self::assertEquals("test-outer-span", $outer->name);
+        self::assertEquals($outer->spanId, $inner->parentSpanId);
+    }
+
+    public function testEndSpanNoSpans(): void
+    {
+        $c = new MyClient();
+        try {
+            $c->endSpan();
+            self::fail("endSpan() with no spans should complain");
+        } catch (\Throwable $e) {
+        }
+        self::assertFalse($c->hasData());
+    }
+
+    public function testEndAllSpans(): void
+    {
+        $c = new MyClient();
+        $span1 = $c->startSpan("test-outer-span");
+        usleep(1000);
+        $span2 = $c->startSpan("test-inner-span");
+        usleep(1000);
+        $c->endAllSpans(); // ends inner and outer span
+        self::assertTrue($c->hasData());
+
+        $traces = $c->getTraceData();
+        self::assertCount(2, $traces);
+        $inner = $traces[0];  // inner completes first, so it goes in the logs first
+        $outer = $traces[1];
+        self::assertEquals("test-inner-span", $inner->name);
+        self::assertEquals("test-outer-span", $outer->name);
+        self::assertEquals($outer->spanId, $inner->parentSpanId);
+    }
+
+    public function testCompleteSpan(): void
+    {
+        $c = new MyClient();
+        $span1 = $c->startSpan("test-outer-span");
+        $c->completeSpan(1, 2, "test-inner-span"); // creates and ends inner span
+        $span1->end();
+        self::assertTrue($c->hasData());
+
+        $traces = $c->getTraceData();
+        self::assertCount(2, $traces);
+        $inner = $traces[0];  // inner completes first, so it goes
+        $outer = $traces[1];
+        self::assertEquals("test-inner-span", $inner->name);
+        self::assertEquals("test-outer-span", $outer->name);
+    }
+
     public function testNestedEndWithChildren(): void
     {
         $c = new MyClient();

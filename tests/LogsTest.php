@@ -21,6 +21,21 @@ class LogsTest extends \PHPUnit\Framework\TestCase
         self::assertGreaterThan($log1time, $log2time);
     }
 
+    public function testLogInSpan(): void
+    {
+        $c = new MyClient();
+        $span = $c->startSpan("test-span");
+        $c->logMessage("Log inside span");
+        $span->end();
+
+        $spans = $c->getTraceData();
+        $logs = $c->getLogData();
+        self::assertCount(1, $logs);
+        self::assertEquals("Log inside span", $logs[0]->body->stringValue);
+        self::assertEquals($spans[0]->spanId, $logs[0]->spanId);
+        self::assertEquals($c->traceId, $logs[0]->traceId);
+    }
+
     public function testSync(): void
     {
         $c = new MyClient(

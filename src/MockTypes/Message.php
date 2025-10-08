@@ -17,13 +17,4 @@ class Message implements \JsonSerializable
     {
         return $this->props;
     }
-
-    public function serializeToJsonString(): string
-    {
-        $v = json_encode($this->props, JSON_UNESCAPED_SLASHES);
-        if ($v === false) {
-            throw new \RuntimeException("Failed to serialize to JSON: " . json_last_error_msg());
-        }
-        return $v;
-    }
 }
