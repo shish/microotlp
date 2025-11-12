@@ -48,7 +48,10 @@ This is probably an unfair comparison because I don't have the OTLP SDK native e
 
 A loop of 10,000 x "create span, log message, end span":
 
-- No instrumentation: 5ms
-- With MicroOTLP (php objects): 20ms
-- With MicroOTLP (protobuf objects): 90ms
-- With OpenTelemetry SDK: 800ms
+```
+No instrumentation :   5ms
+MicroOTLP          :  20ms
+OpenTelemetry SDK  : 800ms
+```
+
+In a more real-world use case, response times for my image gallery were typically around 50ms -- when I added OTSDK logging, that added 50ms of overhead; microotlp adds 1ms of overhead.
