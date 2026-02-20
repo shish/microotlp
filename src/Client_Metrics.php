@@ -87,7 +87,7 @@ trait Client_Metrics
     /**
      * @param array<string, mixed> $metadata
      * @param array<int> $bucketCounts
-     * @param array<int> $explicitBounds
+     * @param array<int|float> $explicitBounds
      * @param array<string, mixed> $attributes
      */
     public function logHistogram(
@@ -133,7 +133,7 @@ trait Client_Metrics
      * explicit bounds.
      *
      * @param array<string, mixed> $metadata
-     * @param array<int> $explicitBounds
+     * @param array<int|float> $explicitBounds
      * @param array<string, mixed> $attributes
      */
     public function logHistogramValue(
