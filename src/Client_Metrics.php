@@ -93,11 +93,11 @@ trait Client_Metrics
     public function logHistogram(
         string $name,
         int $count,
-        int $sum,
+        int|float $sum,
         array $bucketCounts,
         array $explicitBounds,
-        int $min,
-        int $max,
+        int|float $min,
+        int|float $max,
         ?string $unit = null,
         ?string $description = null,
         array $metadata = [],
@@ -128,6 +128,53 @@ trait Client_Metrics
     }
 
     /**
+     * Log a single value as a histogram with one observation. The value
+     * will be placed in the appropriate bucket based on the provided
+     * explicit bounds.
+     *
+     * @param array<string, mixed> $metadata
+     * @param array<int> $explicitBounds
+     * @param array<string, mixed> $attributes
+     */
+    public function logHistogramValue(
+        string $name,
+        int|float $value,
+        array $explicitBounds,
+        ?string $unit = null,
+        ?string $description = null,
+        array $metadata = [],
+        array $attributes = [],
+    ): void {
+        $bucketCounts = array_fill(0, count($explicitBounds) + 1, 0);
+
+        foreach ($explicitBounds as $i => $bound) {
+            if ($value <= $bound) {
+                $bucketCounts[$i] = 1;
+                break;
+            }
+        }
+
+        // Overflow bucket
+        if (array_sum($bucketCounts) === 0) {
+            $bucketCounts[count($explicitBounds)] = 1;
+        }
+
+        $this->logHistogram(
+            $name,
+            1,                  // count
+            $value,             // sum
+            $bucketCounts,
+            $explicitBounds,
+            $value,             // min
+            $value,             // max
+            $unit,
+            $description,
+            $metadata,
+            $attributes,
+        );
+    }
+
+    /**
      * @param array<string, mixed> $metadata
      * @param array{offset: int, bucketCounts: array<int>} $positive
      * @param array<string, mixed> $attributes
@@ -135,12 +182,12 @@ trait Client_Metrics
     public function logExponentialHistogram(
         string $name,
         int $count,
-        int $sum,
+        int|float $sum,
         int $scale,
         int $zeroCount,
         array $positive,
-        int $min,
-        int $max,
+        int|float $min,
+        int|float $max,
         int $zeroThreshold,
         ?string $unit = null,
         ?string $description = null,
