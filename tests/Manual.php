@@ -53,7 +53,7 @@ usleep(20_000);
 $s3 = $c->startSpan("Second Subspan", ["my.span.attr" => "some value"]);
 usleep(100_000);
 $c->logMessage("Another log record");
-$c->logCounter("my.counter", 74, metadata: ["extra" => "attribute"]);
+$c->logCounter("my.counter", 74, attributes: ["extra" => "attribute"]);
 usleep(100_000);
 $s3->end();
 

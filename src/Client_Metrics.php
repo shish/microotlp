@@ -26,6 +26,7 @@ trait Client_Metrics
 
     /**
      * @param array<string, mixed> $metadata
+     * @param array<string, mixed> $attributes
      */
     public function logCounter(
         string $name,
@@ -33,6 +34,7 @@ trait Client_Metrics
         ?string $unit = null,
         ?string $description = null,
         array $metadata = [],
+        array $attributes = [],
     ): void {
         $this->logMetric(
             $name,
@@ -44,7 +46,7 @@ trait Client_Metrics
                     new NumberDataPoint([
                         "asDouble" => $value,
                         "timeUnixNano" => $this->time(),
-                        //"attributes" => $this->formatAttributes($metadata),
+                        "attributes" => self::dict2otel($attributes),
                     ]),
                 ],
                 "aggregationTemporality" => AggregationTemporality::AGGREGATION_TEMPORALITY_DELTA,
@@ -55,6 +57,7 @@ trait Client_Metrics
 
     /**
      * @param array<string, mixed> $metadata
+     * @param array<string, mixed> $attributes
      */
     public function logGauge(
         string $name,
@@ -62,6 +65,7 @@ trait Client_Metrics
         ?string $unit = null,
         ?string $description = null,
         array $metadata = [],
+        array $attributes = [],
     ): void {
         $this->logMetric(
             $name,
@@ -73,6 +77,7 @@ trait Client_Metrics
                     new NumberDataPoint([
                         "asDouble" => $value,
                         "timeUnixNano" => $this->time(),
+                        "attributes" => self::dict2otel($attributes),
                     ]),
                 ],
             ])],
@@ -83,6 +88,7 @@ trait Client_Metrics
      * @param array<string, mixed> $metadata
      * @param array<int> $bucketCounts
      * @param array<int> $explicitBounds
+     * @param array<string, mixed> $attributes
      */
     public function logHistogram(
         string $name,
@@ -95,6 +101,7 @@ trait Client_Metrics
         ?string $unit = null,
         ?string $description = null,
         array $metadata = [],
+        array $attributes = [],
     ): void {
         $this->logMetric(
             $name,
@@ -113,6 +120,7 @@ trait Client_Metrics
                         "explicitBounds" => $explicitBounds,
                         "min" => $min,
                         "max" => $max,
+                        "attributes" => self::dict2otel($attributes),
                     ]),
                 ],
             ])],
@@ -122,6 +130,7 @@ trait Client_Metrics
     /**
      * @param array<string, mixed> $metadata
      * @param array{offset: int, bucketCounts: array<int>} $positive
+     * @param array<string, mixed> $attributes
      */
     public function logExponentialHistogram(
         string $name,
@@ -136,6 +145,7 @@ trait Client_Metrics
         ?string $unit = null,
         ?string $description = null,
         array $metadata = [],
+        array $attributes = [],
     ): void {
         $this->logMetric(
             $name,
@@ -156,6 +166,7 @@ trait Client_Metrics
                         "min" => $min,
                         "max" => $max,
                         "zeroThreshold" => $zeroThreshold,
+                        "attributes" => self::dict2otel($attributes),
                     ]),
                 ],
             ])],
