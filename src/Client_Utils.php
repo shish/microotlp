@@ -27,6 +27,7 @@ trait Client_Utils
     private readonly int $hrEpoch;
 
     protected string $testData = "";
+    protected bool $debug = false;
 
     /**
      * @param array<string, mixed>|null $resourceAttributes
@@ -57,6 +58,12 @@ trait Client_Utils
         $this->spanId = $spanId ?: '0000000000000000';
         $this->spanStack = [];
         $this->hrEpoch = (int)(microtime(true) * 1e9) - hrtime(true);
+    }
+
+    public function setDebug(bool $debug): static
+    {
+        $this->debug = $debug;
+        return $this;
     }
 
     public function getResource(): Resource
@@ -222,9 +229,11 @@ trait Client_Utils
             curl_close($ch);
             throw new \RuntimeException("cURL error: $err");
         }
-        # $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        # $dbg = "$json\n\n$code\n\n$ret";
-        # file_put_contents(tempnam(sys_get_temp_dir(), "microotlp-".time()."-$api-"), $dbg);
+        if ($this->debug) {
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $dbg = "$json\n\n$code\n\n$ret";
+            file_put_contents(tempnam(sys_get_temp_dir(), "microotlp-".time()."-$api-"), $dbg);
+        }
         curl_close($ch);
     }
 
