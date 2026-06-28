@@ -226,7 +226,6 @@ trait Client_Utils
         $ret = curl_exec($ch);
         if ($ret === false) {
             $err = curl_error($ch);
-            curl_close($ch);
             throw new \RuntimeException("cURL error: $err");
         }
         if ($this->debug) {
@@ -234,7 +233,6 @@ trait Client_Utils
             $dbg = "$json\n\n$code\n\n$ret";
             file_put_contents(tempnam(sys_get_temp_dir(), "microotlp-".time()."-$api-"), $dbg);
         }
-        curl_close($ch);
     }
 
     private function sendDataToTest(Message $data): void
