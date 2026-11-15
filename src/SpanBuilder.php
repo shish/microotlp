@@ -49,9 +49,9 @@ class SpanBuilder
             ),
             "name" => $name,
             "startTimeUnixNano" => $startTime ?? $this->client->time(),
-            "kind" => $kind ?? $this->client->spanStack
+            "kind" => $kind ?? ($this->client->spanStack
                 ? SpanKind::INTERNAL
-                : SpanKind::SERVER,
+                : SpanKind::SERVER),
         ]);
         $this->client->spanStack[] = $this;
     }
