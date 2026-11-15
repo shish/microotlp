@@ -151,6 +151,34 @@ class TracesTest extends \PHPUnit\Framework\TestCase
         self::assertGreaterThan($outer->endTimeUnixNano, $inner->endTimeUnixNano);
     }
 
+    public function testDefaultSpanKind(): void
+    {
+        $c = new MyClient();
+        $outer = $c->startSpan("test-outer-span");
+        $inner = $c->startSpan("test-inner-span");
+        $inner->end();
+        $outer->end();
+
+        $traces = $c->getTraceData();
+        self::assertCount(2, $traces);
+        // the root span defaults to SERVER, nested spans default to INTERNAL
+        self::assertEquals(\MicroOTLP\SpanKind::INTERNAL->value, $traces[0]->kind);
+        self::assertEquals(\MicroOTLP\SpanKind::SERVER->value, $traces[1]->kind);
+    }
+
+    public function testExplicitSpanKind(): void
+    {
+        $c = new MyClient();
+        // an explicitly-passed kind must be honored rather than falling back
+        // to the INTERNAL/SERVER default
+        $span = new \MicroOTLP\SpanBuilder($c, "client-span", kind: \MicroOTLP\SpanKind::CLIENT);
+        $span->end();
+
+        $traces = $c->getTraceData();
+        self::assertCount(1, $traces);
+        self::assertEquals(\MicroOTLP\SpanKind::CLIENT->value, $traces[0]->kind);
+    }
+
     public function testSync(): void
     {
         $c = new MyClient(
