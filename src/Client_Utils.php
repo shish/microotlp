@@ -49,10 +49,10 @@ trait Client_Utils
 
         $traceparent = $_SERVER['HTTP_TRACEPARENT'] ?? "";
         assert(is_string($traceparent));
-        $parts = explode("-", $traceparent);
-        if (count($parts) === 4) {
-            $traceId = $traceId ?: $parts[1];
-            $spanId = $spanId ?: $parts[2];
+        $parsed = self::parseTraceparent($traceparent);
+        if ($parsed !== null) {
+            $traceId = $traceId ?: $parsed['traceId'];
+            $spanId = $spanId ?: $parsed['spanId'];
         }
         $this->traceId = $traceId ?: strtoupper(bin2hex(random_bytes(16)));
         $this->spanId = $spanId ?: '0000000000000000';
@@ -85,6 +85,35 @@ trait Client_Utils
     ///////////////////////////////////////////////////////////////////
     // Utils
     ///////////////////////////////////////////////////////////////////
+
+    /**
+     * Parse and validate a W3C traceparent header.
+     *
+     * The header must match the format `version-trace-id-parent-id-trace-flags`,
+     * where version/trace-flags are 2 hex digits, trace-id is 32 hex digits and
+     * parent-id is 16 hex digits. The trace-id and parent-id must not be all
+     * zeros, and version `ff` is invalid. Invalid headers return null and are
+     * ignored by the caller.
+     *
+     * @see https://www.w3.org/TR/trace-context/#traceparent-header
+     * @return array{traceId: string, spanId: string}|null
+     */
+    public static function parseTraceparent(string $traceparent): ?array
+    {
+        $pattern = '/^[0-9a-f]{2}-([0-9a-f]{32})-([0-9a-f]{16})-[0-9a-f]{2}$/';
+        if (preg_match($pattern, $traceparent, $m) !== 1) {
+            return null;
+        }
+        [, $traceId, $spanId] = $m;
+        // Reject invalid version and all-zero IDs.
+        if (str_starts_with($traceparent, 'ff-')) {
+            return null;
+        }
+        if ($traceId === str_repeat('0', 32) || $spanId === str_repeat('0', 16)) {
+            return null;
+        }
+        return ['traceId' => $traceId, 'spanId' => $spanId];
+    }
 
     /**
      * @param array<mixed, mixed> $in
